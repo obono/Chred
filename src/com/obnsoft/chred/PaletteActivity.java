@@ -16,20 +16,8 @@
 
 package com.obnsoft.chred;
 
-import android.app.Application;
+import android.app.Activity;
 
-public class MyApplication extends Application {
-
-    public ChrData mChrData;
-    public ColData mColData;
-
-    /*-----------------------------------------------------------------------*/
-
-    @Override
-    public void onCreate() {
-        super.onCreate();
-        mChrData = new ChrData();
-        mColData = new ColData();
-    }
+public class PaletteActivity extends Activity {
 
 }

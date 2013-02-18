@@ -33,6 +33,16 @@ public class ColData {
 
     private int[] mColor = new int[COLS_PER_PAL * MAX_PALS];
 
+    /*-----------------------------------------------------------------------*/
+
+    public ColData() {
+        for (int i = 0; i < MAX_PALS; i++) {
+            for (int j = 0; j < COLS_PER_PAL; j++) {
+                mColor[i * COLS_PER_PAL + j] = Color.rgb(j << 3, j << 3, j << 3);
+            }
+        }
+    }
+
     public int getColor(int pal, int c) {
         if (pal < 0 || pal >= MAX_PALS || c < 0 || c >= COLS_PER_PAL) return Color.TRANSPARENT;
         return mColor[pal << 4 | c];

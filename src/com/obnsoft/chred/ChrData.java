@@ -21,6 +21,7 @@ import java.io.OutputStream;
 
 import android.graphics.Canvas;
 import android.graphics.Paint;
+import android.util.Log;
 
 public class ChrData {
 
@@ -38,7 +39,7 @@ public class ChrData {
     private int mVUnits = 2;
 
     private ColData mColData;
-    private ChrUnit[] mChrs = new ChrUnit[MAX_CHARS];
+    private ChrUnit[] mChrs;
     private Paint mPaint = new Paint();
 
     /*-----------------------------------------------------------------------*/
@@ -97,6 +98,13 @@ public class ChrData {
 
     /*-----------------------------------------------------------------------*/
 
+    public ChrData() {
+        mChrs = new ChrUnit[MAX_CHARS];
+        for (int i = 0; i < MAX_CHARS; i++) {
+            mChrs[i] = new ChrUnit();
+        }
+    }
+
     public void setColData(ColData colData) {
         mColData = colData;
     }
@@ -121,6 +129,7 @@ public class ChrData {
         if (x < 0 || x >= mHUnits * UNIT_SIZE || y < 0 || y > mVUnits * UNIT_SIZE) return;
         if (c <  0 || c >= ColData.COLS_PER_PAL) return;
         int idx = mChrIdx + (y / UNIT_SIZE) * mHUnits + (x / UNIT_SIZE);
+        Log.d("HOGE", "HOGE " + idx);
         mChrs[idx].setUnitDot(x % UNIT_SIZE, y % UNIT_SIZE, c);
     }
 

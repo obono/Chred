@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    >
+    <ImageButton
+        android:id="@+id/btn_move"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
+        android:src="@android:drawable/ic_menu_crop"
+        android:onClick="onClickMoveButton"
+        />
+    <ImageButton
+        android:id="@+id/btn_draw"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignTop="@id/btn_move"
+        android:layout_toLeftOf="@id/btn_move"
+        android:src="@android:drawable/ic_menu_edit"
+        android:onClick="onClickDrawButton"
+        />
+    <com.obnsoft.view.MagnifyView
+        android:id="@+id/view_edit"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@id/btn_move"
+        />
+</RelativeLayout>
