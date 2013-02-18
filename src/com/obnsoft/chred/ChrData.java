@@ -21,7 +21,6 @@ import java.io.OutputStream;
 
 import android.graphics.Canvas;
 import android.graphics.Paint;
-import android.util.Log;
 
 public class ChrData {
 
@@ -129,7 +128,6 @@ public class ChrData {
         if (x < 0 || x >= mHUnits * UNIT_SIZE || y < 0 || y > mVUnits * UNIT_SIZE) return;
         if (c <  0 || c >= ColData.COLS_PER_PAL) return;
         int idx = mChrIdx + (y / UNIT_SIZE) * mHUnits + (x / UNIT_SIZE);
-        Log.d("HOGE", "HOGE " + idx);
         mChrs[idx].setUnitDot(x % UNIT_SIZE, y % UNIT_SIZE, c);
     }
 

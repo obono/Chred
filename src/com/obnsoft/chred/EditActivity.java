@@ -46,6 +46,7 @@ public class EditActivity extends Activity implements MagnifyView.EventHandler {
         setContentView(R.layout.edit);
 
         mApp = (MyApplication) getApplication();
+        mApp.mChrData.setColData(mApp.mColData);
         mApp.mChrData.setTarget(0, mVUnit, mHUnit);
 
         mBitmap = Bitmap.createBitmap(16, 16, Bitmap.Config.RGB_565);

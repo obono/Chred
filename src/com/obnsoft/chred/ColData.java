@@ -58,9 +58,9 @@ public class ColData {
         if (Utils.loadFromStreamCommon(in, HEADER1, data)) {
             int offset = HEADER2.length;
             for (int i = 0; i < mColor.length; i++) {
-                int val = (data[offset + i * 2] | data[offset + i * 2 + 1] << 8) & 0x7FFF;
+                int val = data[offset + i * 2] & 0xFF | data[offset + i * 2 + 1] << 8 & 0x7F00;
                 mColor[i] = Color.rgb(
-                        (val & 0x1f) * 8, (val >> 5 & 0x1f) * 8, (val >> 10 & 0x1f) * 8);
+                        (val & 0x1F) << 3, (val >> 5 & 0x1F) << 3, (val >> 10 & 0x1F) << 3);
             }
             return true;
         }

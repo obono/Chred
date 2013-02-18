@@ -16,7 +16,12 @@
 
 package com.obnsoft.chred;
 
+import java.io.FileNotFoundException;
+import java.io.InputStream;
+
 import android.app.Application;
+import android.content.res.AssetManager;
+import android.util.Log;
 
 public class MyApplication extends Application {
 
@@ -30,6 +35,31 @@ public class MyApplication extends Application {
         super.onCreate();
         mChrData = new ChrData();
         mColData = new ColData();
+
+        AssetManager as = getResources().getAssets();
+        InputStream in;
+        try {
+            try {
+                in = openFileInput("chara.ptc");
+            } catch (FileNotFoundException e) {
+                in = as.open("spu1.ptc");
+            }
+            if (!mChrData.loadFromStream(in)) {
+                Log.e("CHRED", "Failed to load character.");
+            }
+            in.close();
+            try {
+                in = openFileInput("palette.ptc");
+            } catch (FileNotFoundException e) {
+                in = as.open("palette.ptc");
+            }
+            if (!mColData.loadFromStream(in)) {
+                Log.e("CHRED", "Failed to load palette.");
+            }
+            in.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
 }
