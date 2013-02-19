@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="hello">Hello World, MainActivity!</string>
+    <string name="app_code">OBN-A12</string>
     <string name="app_name">CHRED on Android</string>
+    <string name="target">Target</string>
+    <string name="edit">Edit</string>
+    <string name="palette">Palette</string>
+    <string name="size">Size</string>
 </resources>

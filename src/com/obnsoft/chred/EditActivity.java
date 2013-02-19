@@ -20,23 +20,14 @@ import com.obnsoft.view.MagnifyView;
 
 import android.app.Activity;
 import android.graphics.Bitmap;
-import android.graphics.Canvas;
 import android.graphics.Color;
-import android.graphics.Paint;
 import android.os.Bundle;
 import android.view.MotionEvent;
 import android.view.View;
 
 public class EditActivity extends Activity implements MagnifyView.EventHandler {
 
-    private int mPalIdx = 2;
-    private int mVUnit = 2;
-    private int mHUnit = 2;
-
     private Bitmap mBitmap;
-    private Canvas mCanvas;
-    private Paint mPaint = new Paint();
-
     private MyApplication mApp;
     private MagnifyView mMgView;
 
@@ -46,12 +37,12 @@ public class EditActivity extends Activity implements MagnifyView.EventHandler {
         setContentView(R.layout.edit);
 
         mApp = (MyApplication) getApplication();
-        mApp.mChrData.setColData(mApp.mColData);
-        mApp.mChrData.setTarget(0, mVUnit, mHUnit);
+        ChrData chrData = mApp.mChrData;
+        chrData.setTargetSize(chrData.getTargetSizeH(), chrData.getTargetSizeV());
 
-        mBitmap = Bitmap.createBitmap(16, 16, Bitmap.Config.RGB_565);
-        mCanvas = new Canvas(mBitmap);
-        mApp.mChrData.drawTarget(mCanvas, mPalIdx);
+        mBitmap = Bitmap.createBitmap(chrData.getTargetSizeH() * ChrData.UNIT_SIZE,
+                chrData.getTargetSizeV() * ChrData.UNIT_SIZE, Bitmap.Config.RGB_565);
+        chrData.drawTarget(mBitmap, 0, mApp.mPalIdx);
 
         mMgView = (MagnifyView) findViewById(R.id.view_edit);
         mMgView.setBitmap(mBitmap);
@@ -70,10 +61,11 @@ public class EditActivity extends Activity implements MagnifyView.EventHandler {
     @Override
     public boolean onTouchEventUnit(MotionEvent ev, int x, int y) {
         int c = 10;
-        mApp.mChrData.setTargetDot(x, y, c);
-        mPaint.setColor(mApp.mColData.getColor(mPalIdx, c));
-        mCanvas.drawPoint(x, y, mPaint);
-        mMgView.invalidateUnit(x, y);
+        if (x >= 0 && y >= 0 && x < mBitmap.getWidth() && y < mBitmap.getHeight()) {
+            mApp.mChrData.setTargetDot(0, x, y, c);
+            mBitmap.setPixel(x, y, mApp.mColData.getColor(mApp.mPalIdx, c));
+            mMgView.invalidateUnit(x, y);
+        }
         return true;
     }
 

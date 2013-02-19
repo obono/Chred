@@ -25,6 +25,7 @@ import android.util.Log;
 
 public class MyApplication extends Application {
 
+    public int mPalIdx = 2;
     public ChrData mChrData;
     public ColData mColData;
 
@@ -33,8 +34,10 @@ public class MyApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
+
         mChrData = new ChrData();
         mColData = new ColData();
+        mChrData.setColData(mColData);
 
         AssetManager as = getResources().getAssets();
         InputStream in;

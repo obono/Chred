@@ -34,24 +34,24 @@ public class MainActivity extends TabActivity {
         TabHost.TabSpec spec;
         Intent intent;
         intent = new Intent().setClass(this, ChrsActivity.class);
-        spec = tabHost.newTabSpec("tab1")
-                      .setIndicator("Target",
+        spec = tabHost.newTabSpec("Chrs")
+                      .setIndicator("Chrs",
                        res.getDrawable(android.R.drawable.ic_menu_add))
                       .setContent(intent);
         tabHost.addTab(spec);
         intent = new Intent().setClass(this, EditActivity.class);
-        spec = tabHost.newTabSpec("tab2")
+        spec = tabHost.newTabSpec("Edit")
                       .setIndicator("Edit",
                        res.getDrawable(android.R.drawable.ic_menu_add))
                       .setContent(intent);
         tabHost.addTab(spec);
         intent = new Intent().setClass(this, PaletteActivity.class);
-        spec = tabHost.newTabSpec("tab3")
+        spec = tabHost.newTabSpec("Palette")
                       .setIndicator("Palette",
                        res.getDrawable(android.R.drawable.ic_menu_add))
                       .setContent(intent);
         tabHost.addTab(spec);
-        tabHost.setCurrentTab(1);
+        tabHost.setCurrentTab(0);
     }
 
 }
