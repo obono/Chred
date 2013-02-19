@@ -37,25 +37,26 @@ public class EditActivity extends Activity implements MagnifyView.EventHandler {
         setContentView(R.layout.edit);
 
         mApp = (MyApplication) getApplication();
-        ChrData chrData = mApp.mChrData;
-        chrData.setTargetSize(chrData.getTargetSizeH(), chrData.getTargetSizeV());
-
-        mBitmap = Bitmap.createBitmap(chrData.getTargetSizeH() * ChrData.UNIT_SIZE,
-                chrData.getTargetSizeV() * ChrData.UNIT_SIZE, Bitmap.Config.RGB_565);
-        chrData.drawTarget(mBitmap, 0, mApp.mPalIdx);
-
         mMgView = (MagnifyView) findViewById(R.id.view_edit);
-        mMgView.setBitmap(mBitmap);
         mMgView.setGridColor(Color.GRAY, false);
-
     }
 
     @Override
-    protected void onDestroy() {
+    protected void onResume() {
+        super.onResume();
+        ChrData chrData = mApp.mChrData;
+        mBitmap = Bitmap.createBitmap(chrData.getTargetSizeH() * ChrData.UNIT_SIZE,
+                chrData.getTargetSizeV() * ChrData.UNIT_SIZE, Bitmap.Config.ARGB_8888);
+        chrData.drawTarget(mBitmap, mApp.mChrIdx, mApp.mPalIdx);
+        mMgView.setBitmap(mBitmap);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
         mMgView.setBitmap(null);
         mBitmap.recycle();
         mBitmap = null;
-        super.onDestroy();
     }
 
     @Override

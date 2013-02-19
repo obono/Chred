@@ -45,7 +45,7 @@ public class ColData {
 
     public int getColor(int pal, int c) {
         if (pal < 0 || pal >= MAX_PALS || c < 0 || c >= COLS_PER_PAL) return Color.TRANSPARENT;
-        return mColor[pal << 4 | c];
+        return mColor[pal << 4 | c] & ((c == 0) ? 0x80FFFFFF : Color.WHITE);
     }
 
     public void setColor(int pal, int c, int val) {

@@ -36,7 +36,7 @@ public class SideTabWidget extends TabWidget {
 
     @Override
     public void addView(View child) {
-        if (child.getLayoutParams() == null) {
+        if (true || child.getLayoutParams() == null) {
             final LinearLayout.LayoutParams lp = new LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT, 0, 1.0f);
             lp.setMargins(0, 0, 0, 0);

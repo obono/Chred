@@ -27,6 +27,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
 import android.widget.AdapterView.OnItemSelectedListener;
 import android.widget.BaseAdapter;
 import android.widget.GridView;
@@ -37,8 +38,6 @@ import android.widget.TextView;
 public class ChrsActivity extends Activity {
 
     private static final int GRIDITEM_SIZE = 80;
-
-    private int mPalette = 2;
 
     private int mChrStep;
     private int mChrCount;
@@ -58,16 +57,16 @@ public class ChrsActivity extends Activity {
     /*-----------------------------------------------------------------------*/
 
     class ChrView extends View {
-        private int mPosition = 0;
+        private int mPos = 0;
         public ChrView(Context context) {
             super(context);
         }
         public void setPosition(int pos) {
-            mPosition = pos;
+            mPos = pos;
         }
         @Override
         public void draw(Canvas canvas) {
-            mSrcRect.set(0, mPosition * mChrHeight, mChrWidth, (mPosition + 1) * mChrHeight);
+            mSrcRect.set(0, mPos * mChrHeight, mChrWidth, (mPos + 1) * mChrHeight);
             canvas.drawBitmap(mBitmap, mSrcRect, mDestRect, null);
             canvas.drawRect(mDestRect, mPaint);
         }
@@ -88,15 +87,15 @@ public class ChrsActivity extends Activity {
             return mChrCount;
         }
         @Override
-        public Object getItem(int position) {
+        public Object getItem(int pos) {
             return null;
         }
         @Override
-        public long getItemId(int position) {
-            return position * mChrStep;
+        public long getItemId(int pos) {
+            return pos * mChrStep;
         }
         @Override
-        public View getView(int position, View convertView, ViewGroup parent) {
+        public View getView(int pos, View convertView, ViewGroup parent) {
             Context context = ChrsActivity.this;
             ChrView cv;
             TextView tv;
@@ -114,9 +113,10 @@ public class ChrsActivity extends Activity {
                 cv = holder.mChrView;
                 tv = holder.mTextView;
             }
-            int idx = (int) getItemId(position);
-            cv.setPosition(position);
+            int idx = (int) getItemId(pos);
+            cv.setPosition(pos);
             tv.setText(String.valueOf(idx));
+            convertView.setBackgroundColor((idx == mApp.mChrIdx) ? 0x80FFFF00 : Color.TRANSPARENT);
             return convertView;
         }
     }
@@ -129,24 +129,29 @@ public class ChrsActivity extends Activity {
         setContentView(R.layout.chrs);
 
         mApp = (MyApplication) getApplication();
-        changeTargetSize(0, 0);
-
         mPaint.setColor(Color.WHITE);
         mPaint.setStyle(Paint.Style.STROKE);
         mAdapter = new MyAdapter();
         mGridView = (GridView) findViewById(R.id.grid_chrs);
         mGridView.setAdapter(mAdapter);
+        mGridView.setOnItemClickListener(new OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int pos, long id) {
+                mApp.mChrIdx = (int) id;
+                mAdapter.notifyDataSetChanged();
+            }
+        });
 
         Spinner spinner = (Spinner) findViewById(R.id.spin_size);
         spinner.setOnItemSelectedListener(new OnItemSelectedListener() {
             @Override
-            public void onItemSelected(AdapterView<?> parent, View view,
-                    int position, long id) {
+            public void onItemSelected(AdapterView<?> parent, View view, int pos, long id) {
                 Spinner spinner = (Spinner) parent;
                 String item = (String) spinner.getSelectedItem();
                 int hUnits = item.charAt(0) - '0';
                 int vUnits = item.charAt(2) - '0';
-                changeTargetSize(hUnits, vUnits);
+                mApp.mChrData.setTargetSize(hUnits, vUnits);
+                drawChrsBitmap();
             }
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
@@ -157,12 +162,11 @@ public class ChrsActivity extends Activity {
         spinner = (Spinner) findViewById(R.id.spin_palette);
         spinner.setOnItemSelectedListener(new OnItemSelectedListener() {
             @Override
-            public void onItemSelected(AdapterView<?> parent, View view,
-                    int position, long id) {
+            public void onItemSelected(AdapterView<?> parent, View view, int pos, long id) {
                 Spinner spinner = (Spinner) parent;
                 String item = (String) spinner.getSelectedItem();
-                mPalette = Integer.parseInt(item);
-                changeTargetSize(0, 0);
+                mApp.mPalIdx = Integer.parseInt(item);
+                drawChrsBitmap();
             }
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
@@ -172,35 +176,39 @@ public class ChrsActivity extends Activity {
     }
 
     @Override
-    protected void onDestroy() {
-        if (mBitmap != null) {
-            mBitmap.recycle();
-            mBitmap = null;
-        }
-        super.onDestroy();
+    protected void onResume() {
+        super.onResume();
+        drawChrsBitmap();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        mBitmap.recycle();
+        mBitmap = null;
     }
 
     /*-----------------------------------------------------------------------*/
 
-    private void changeTargetSize(int hUnits, int vUnits) {
+    private void drawChrsBitmap() {
         ChrData chrData = mApp.mChrData;
-        chrData.setTargetSize(hUnits, vUnits);
-        hUnits = chrData.getTargetSizeH();
-        vUnits = chrData.getTargetSizeV();
-
-        if (mBitmap != null) {
-            mBitmap.recycle();
-        }
+        int hUnits = chrData.getTargetSizeH();
+        int vUnits = chrData.getTargetSizeV();
         mChrStep = hUnits * vUnits;
         mChrCount = ChrData.MAX_CHARS / mChrStep;
         mChrWidth = ChrData.UNIT_SIZE * hUnits;
         mChrHeight = ChrData.UNIT_SIZE * vUnits;
-        mBitmap = Bitmap.createBitmap(mChrWidth, mChrHeight * mChrCount, Bitmap.Config.RGB_565);
+
+        if (mBitmap != null) {
+            mBitmap.recycle();
+        }
+        mBitmap = Bitmap.createBitmap(mChrWidth, mChrHeight * mChrCount, Bitmap.Config.ARGB_8888);
         for (int i = 0; i < mChrCount; i++) {
-            chrData.drawTarget(mBitmap, i * mChrStep, mPalette, 0, i * mChrHeight);
+            chrData.drawTarget(mBitmap, i * mChrStep, mApp.mPalIdx, 0, i * mChrHeight);
         }
         mChrScale = GRIDITEM_SIZE / ChrData.UNIT_SIZE / Math.max(hUnits, vUnits);
         mDestRect.set(0, 0, mChrWidth * mChrScale, mChrHeight * mChrScale);
+        mApp.mChrIdx &= ~(mChrStep - 1);
         if (mAdapter != null) {
             mAdapter.notifyDataSetChanged();
         }

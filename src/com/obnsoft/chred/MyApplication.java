@@ -25,7 +25,9 @@ import android.util.Log;
 
 public class MyApplication extends Application {
 
+    public int mChrIdx = 0;
     public int mPalIdx = 2;
+
     public ChrData mChrData;
     public ColData mColData;
 
