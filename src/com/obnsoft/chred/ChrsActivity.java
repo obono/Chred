@@ -37,7 +37,7 @@ import android.widget.RelativeLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 
-public class ChrsActivity extends Activity {
+public class ChrsActivity extends Activity implements OnItemSelectedListener {
 
     private int mChrStep;
     private int mChrCount;
@@ -60,7 +60,7 @@ public class ChrsActivity extends Activity {
     /*-----------------------------------------------------------------------*/
 
     class ChrView extends View {
-        private int mPos = 0;
+        private int mPos;
         public ChrView(Context context) {
             super(context);
         }
@@ -144,37 +144,18 @@ public class ChrsActivity extends Activity {
         mGridItemTextLayout.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
 
         Spinner spinner = (Spinner) findViewById(R.id.spin_size);
-        spinner.setOnItemSelectedListener(new OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int pos, long id) {
-                Spinner spinner = (Spinner) parent;
-                String item = (String) spinner.getSelectedItem();
-                int hUnits = item.charAt(0) - '0';
-                int vUnits = item.charAt(2) - '0';
-                mApp.mChrData.setTargetSize(hUnits, vUnits);
-                drawChrsBitmap();
+        spinner.setOnItemSelectedListener(this);
+        String strSize = String.format("%dx%d",
+                mApp.mChrData.getTargetSizeH(), mApp.mChrData.getTargetSizeV());
+        for (int i = 0; i < spinner.getCount(); i++) {
+            if (strSize.equals(spinner.getItemAtPosition(i))) {
+                spinner.setSelection(i);
+                break;
             }
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {
-                // Do nothing
-            }
-        });
-        spinner.setSelection(4); // TODO
+        }
 
         mPalSpinner = (Spinner) findViewById(R.id.spin_palette);
-        mPalSpinner.setOnItemSelectedListener(new OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int pos, long id) {
-                Spinner spinner = (Spinner) parent;
-                String item = (String) spinner.getSelectedItem();
-                mApp.mPalIdx = Integer.parseInt(item);
-                drawChrsBitmap();
-            }
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {
-                // Do nothing
-            }
-        });
+        mPalSpinner.setOnItemSelectedListener(this);
 
         mAdapter = new MyAdapter();
         mGridView = (GridView) findViewById(R.id.grid_chrs);
@@ -203,6 +184,27 @@ public class ChrsActivity extends Activity {
         super.onPause();
         mBitmap.recycle();
         mBitmap = null;
+    }
+
+    /*-----------------------------------------------------------------------*/
+
+    @Override
+    public void onItemSelected(AdapterView<?> parent, View view, int pos, long id) {
+        Spinner spinner = (Spinner) parent;
+        if (spinner == mPalSpinner) {
+            mApp.mPalIdx = spinner.getSelectedItemPosition();
+            drawChrsBitmap();
+        } else {
+            String item = (String) spinner.getSelectedItem();
+            int hUnits = item.charAt(0) - '0';
+            int vUnits = item.charAt(2) - '0';
+            mApp.mChrData.setTargetSize(hUnits, vUnits);
+            drawChrsBitmap();
+        }
+    }
+    @Override
+    public void onNothingSelected(AdapterView<?> parent) {
+        // Do nothing
     }
 
     /*-----------------------------------------------------------------------*/

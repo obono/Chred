@@ -28,7 +28,8 @@ import android.widget.AdapterView;
 import android.widget.Spinner;
 import android.widget.AdapterView.OnItemSelectedListener;
 
-public class EditActivity extends Activity implements MagnifyView.EventHandler {
+public class EditActivity extends Activity
+        implements MagnifyView.EventHandler, OnItemSelectedListener {
 
     private int mColIdx;
 
@@ -37,6 +38,8 @@ public class EditActivity extends Activity implements MagnifyView.EventHandler {
     private MyApplication mApp;
     private Spinner mPalSpinner;
     private MagnifyView mMgView;
+
+    /*-----------------------------------------------------------------------*/
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -48,35 +51,9 @@ public class EditActivity extends Activity implements MagnifyView.EventHandler {
         mMgView.setGridColor(Color.GRAY, false);
 
         Spinner spinner = (Spinner) findViewById(R.id.spin_color);
-        spinner.setOnItemSelectedListener(new OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int pos, long id) {
-                Spinner spinner = (Spinner) parent;
-                String item = (String) spinner.getSelectedItem();
-                mColIdx = Integer.parseInt(item);
-            }
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {
-                // Do nothing
-            }
-        });
-
+        spinner.setOnItemSelectedListener(this);
         mPalSpinner = (Spinner) findViewById(R.id.spin_palette);
-        mPalSpinner.setOnItemSelectedListener(new OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int pos, long id) {
-                Spinner spinner = (Spinner) parent;
-                String item = (String) spinner.getSelectedItem();
-                mApp.mPalIdx = Integer.parseInt(item);
-                mApp.mChrData.drawTarget(mBitmap, mApp.mChrIdx, mApp.mPalIdx);
-                mMgView.invalidate();
-            }
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {
-                // Do nothing
-            }
-        });
-
+        mPalSpinner.setOnItemSelectedListener(this);
     }
 
     @Override
@@ -99,6 +76,8 @@ public class EditActivity extends Activity implements MagnifyView.EventHandler {
         mBitmap = null;
     }
 
+    /*-----------------------------------------------------------------------*/
+
     @Override
     public boolean onTouchEventUnit(MotionEvent ev, int x, int y) {
         if (x >= 0 && y >= 0 && x < mBitmap.getWidth() && y < mBitmap.getHeight()) {
@@ -108,6 +87,25 @@ public class EditActivity extends Activity implements MagnifyView.EventHandler {
         }
         return true;
     }
+
+    @Override
+    public void onItemSelected(AdapterView<?> parent, View view, int pos, long id) {
+        Spinner spinner = (Spinner) parent;
+        if (spinner == mPalSpinner) {
+            mApp.mPalIdx = spinner.getSelectedItemPosition();
+            mApp.mChrData.drawTarget(mBitmap, mApp.mChrIdx, mApp.mPalIdx);
+            mMgView.invalidate();
+        } else {
+            mColIdx = spinner.getSelectedItemPosition();
+        }
+    }
+
+    @Override
+    public void onNothingSelected(AdapterView<?> parent) {
+        // Do nothing
+    }
+
+    /*-----------------------------------------------------------------------*/
 
     public void onClickMoveButton(View v) {
         mMgView.setEventHandler(null);
