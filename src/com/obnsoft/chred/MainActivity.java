@@ -29,33 +29,36 @@ public class MainActivity extends TabActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
 
-        Resources res = getResources();
         TabHost tabHost = getTabHost();
         TabHost.TabSpec spec;
+        Resources res = getResources();
         Intent intent;
 
         intent = new Intent().setClass(this, ChrsActivity.class);
-        spec = tabHost.newTabSpec("Chrs")
-                      .setIndicator("Chrs",
-                       res.getDrawable(android.R.drawable.ic_menu_add))
-                      .setContent(intent);
+        spec = tabHost.newTabSpec("target")
+                .setIndicator(getString(R.string.target), res.getDrawable(R.drawable.icon))
+                .setContent(intent);
         tabHost.addTab(spec);
 
         intent = new Intent().setClass(this, EditActivity.class);
-        spec = tabHost.newTabSpec("Edit")
-                      .setIndicator("Edit",
-                       res.getDrawable(android.R.drawable.ic_menu_add))
-                      .setContent(intent);
+        spec = tabHost.newTabSpec("edit")
+                .setIndicator(getString(R.string.edit), res.getDrawable(R.drawable.icon))
+                .setContent(intent);
         tabHost.addTab(spec);
 
         intent = new Intent().setClass(this, PaletteActivity.class);
-        spec = tabHost.newTabSpec("Palette")
-                      .setIndicator("Palette",
-                       res.getDrawable(android.R.drawable.ic_menu_add))
-                      .setContent(intent);
+        spec = tabHost.newTabSpec("palette")
+              .setIndicator(getString(R.string.palette), res.getDrawable(R.drawable.icon))
+              .setContent(intent);
         tabHost.addTab(spec);
 
         tabHost.setCurrentTab(0);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        ((MyApplication) getApplication()).saveData();
     }
 
 }

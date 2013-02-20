@@ -24,20 +24,20 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.os.Bundle;
+import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.AdapterView.OnItemSelectedListener;
 import android.widget.BaseAdapter;
 import android.widget.GridView;
-import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 
 public class ChrsActivity extends Activity {
-
-    private static final int GRIDITEM_SIZE = 80;
 
     private int mChrStep;
     private int mChrCount;
@@ -53,6 +53,9 @@ public class ChrsActivity extends Activity {
     private MyApplication mApp;
     private MyAdapter mAdapter;
     private GridView mGridView;
+    private Spinner mPalSpinner;
+    private AbsListView.LayoutParams mGridItemLayout;
+    private RelativeLayout.LayoutParams mGridItemTextLayout;
 
     /*-----------------------------------------------------------------------*/
 
@@ -68,7 +71,8 @@ public class ChrsActivity extends Activity {
         public void draw(Canvas canvas) {
             mSrcRect.set(0, mPos * mChrHeight, mChrWidth, (mPos + 1) * mChrHeight);
             canvas.drawBitmap(mBitmap, mSrcRect, mDestRect, null);
-            canvas.drawRect(mDestRect, mPaint);
+            canvas.drawRect(mDestRect.left - 1, mDestRect.top - 1,
+                    mDestRect.right, mDestRect.bottom, mPaint);
         }
     }
 
@@ -100,13 +104,14 @@ public class ChrsActivity extends Activity {
             ChrView cv;
             TextView tv;
             if (convertView == null) {
-                LinearLayout ll = new LinearLayout(context);
-                ll.setOrientation(LinearLayout.VERTICAL);
+                RelativeLayout rl = new RelativeLayout(context);
+                rl.setGravity(Gravity.BOTTOM);
                 cv = new ChrView(context);
                 tv = new TextView(context);
-                ll.addView(cv, GRIDITEM_SIZE, GRIDITEM_SIZE);
-                ll.addView(tv);
-                convertView = ll;
+                tv.setGravity(Gravity.CENTER);
+                rl.addView(cv);
+                rl.addView(tv, mGridItemTextLayout);
+                convertView = rl;
                 convertView.setTag(new ViewHolder(cv, tv));
             } else {
                 ViewHolder holder = (ViewHolder) convertView.getTag();
@@ -116,6 +121,7 @@ public class ChrsActivity extends Activity {
             int idx = (int) getItemId(pos);
             cv.setPosition(pos);
             tv.setText(String.valueOf(idx));
+            convertView.setLayoutParams(mGridItemLayout);
             convertView.setBackgroundColor((idx == mApp.mChrIdx) ? 0x80FFFF00 : Color.TRANSPARENT);
             return convertView;
         }
@@ -129,18 +135,13 @@ public class ChrsActivity extends Activity {
         setContentView(R.layout.chrs);
 
         mApp = (MyApplication) getApplication();
+        mChrScale = (int) (4f * getResources().getDisplayMetrics().density);
         mPaint.setColor(Color.WHITE);
         mPaint.setStyle(Paint.Style.STROKE);
-        mAdapter = new MyAdapter();
-        mGridView = (GridView) findViewById(R.id.grid_chrs);
-        mGridView.setAdapter(mAdapter);
-        mGridView.setOnItemClickListener(new OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int pos, long id) {
-                mApp.mChrIdx = (int) id;
-                mAdapter.notifyDataSetChanged();
-            }
-        });
+        mGridItemTextLayout = new RelativeLayout.LayoutParams(
+                RelativeLayout.LayoutParams.MATCH_PARENT,
+                RelativeLayout.LayoutParams.WRAP_CONTENT);
+        mGridItemTextLayout.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
 
         Spinner spinner = (Spinner) findViewById(R.id.spin_size);
         spinner.setOnItemSelectedListener(new OnItemSelectedListener() {
@@ -158,9 +159,10 @@ public class ChrsActivity extends Activity {
                 // Do nothing
             }
         });
+        spinner.setSelection(4); // TODO
 
-        spinner = (Spinner) findViewById(R.id.spin_palette);
-        spinner.setOnItemSelectedListener(new OnItemSelectedListener() {
+        mPalSpinner = (Spinner) findViewById(R.id.spin_palette);
+        mPalSpinner.setOnItemSelectedListener(new OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int pos, long id) {
                 Spinner spinner = (Spinner) parent;
@@ -173,12 +175,27 @@ public class ChrsActivity extends Activity {
                 // Do nothing
             }
         });
+
+        mAdapter = new MyAdapter();
+        mGridView = (GridView) findViewById(R.id.grid_chrs);
+        mGridView.setAdapter(mAdapter);
+        mGridView.setOnItemClickListener(new OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int pos, long id) {
+                mApp.mChrIdx = (int) id;
+                mAdapter.notifyDataSetChanged();
+            }
+        });
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        drawChrsBitmap();
+        if (mPalSpinner.getSelectedItemPosition() != mApp.mPalIdx) {
+            mPalSpinner.setSelection(mApp.mPalIdx);
+        } else {
+            drawChrsBitmap();
+        }
     }
 
     @Override
@@ -206,12 +223,15 @@ public class ChrsActivity extends Activity {
         for (int i = 0; i < mChrCount; i++) {
             chrData.drawTarget(mBitmap, i * mChrStep, mApp.mPalIdx, 0, i * mChrHeight);
         }
-        mChrScale = GRIDITEM_SIZE / ChrData.UNIT_SIZE / Math.max(hUnits, vUnits);
-        mDestRect.set(0, 0, mChrWidth * mChrScale, mChrHeight * mChrScale);
+
         mApp.mChrIdx &= ~(mChrStep - 1);
-        if (mAdapter != null) {
-            mAdapter.notifyDataSetChanged();
-        }
+        int itemWidth = mChrWidth * mChrScale;
+        int itemHeight = mChrHeight * mChrScale;
+        mDestRect.set(mChrScale, mChrScale, itemWidth + mChrScale, itemHeight + mChrScale);
+        mGridView.setColumnWidth(itemWidth + mChrScale * 2);
+        mGridItemLayout = new AbsListView.LayoutParams(
+                itemWidth + mChrScale * 2, itemHeight + mChrScale * 6);
+        mAdapter.notifyDataSetChanged();
     }
 
 }

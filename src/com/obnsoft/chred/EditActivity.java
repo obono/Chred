@@ -24,11 +24,18 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.Spinner;
+import android.widget.AdapterView.OnItemSelectedListener;
 
 public class EditActivity extends Activity implements MagnifyView.EventHandler {
 
+    private int mColIdx;
+
     private Bitmap mBitmap;
+
     private MyApplication mApp;
+    private Spinner mPalSpinner;
     private MagnifyView mMgView;
 
     @Override
@@ -39,11 +46,44 @@ public class EditActivity extends Activity implements MagnifyView.EventHandler {
         mApp = (MyApplication) getApplication();
         mMgView = (MagnifyView) findViewById(R.id.view_edit);
         mMgView.setGridColor(Color.GRAY, false);
+
+        Spinner spinner = (Spinner) findViewById(R.id.spin_color);
+        spinner.setOnItemSelectedListener(new OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int pos, long id) {
+                Spinner spinner = (Spinner) parent;
+                String item = (String) spinner.getSelectedItem();
+                mColIdx = Integer.parseInt(item);
+            }
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+                // Do nothing
+            }
+        });
+
+        mPalSpinner = (Spinner) findViewById(R.id.spin_palette);
+        mPalSpinner.setOnItemSelectedListener(new OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int pos, long id) {
+                Spinner spinner = (Spinner) parent;
+                String item = (String) spinner.getSelectedItem();
+                mApp.mPalIdx = Integer.parseInt(item);
+                mApp.mChrData.drawTarget(mBitmap, mApp.mChrIdx, mApp.mPalIdx);
+                mMgView.invalidate();
+            }
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+                // Do nothing
+            }
+        });
+
     }
 
     @Override
     protected void onResume() {
         super.onResume();
+        mPalSpinner.setSelection(mApp.mPalIdx);
+
         ChrData chrData = mApp.mChrData;
         mBitmap = Bitmap.createBitmap(chrData.getTargetSizeH() * ChrData.UNIT_SIZE,
                 chrData.getTargetSizeV() * ChrData.UNIT_SIZE, Bitmap.Config.ARGB_8888);
@@ -61,10 +101,9 @@ public class EditActivity extends Activity implements MagnifyView.EventHandler {
 
     @Override
     public boolean onTouchEventUnit(MotionEvent ev, int x, int y) {
-        int c = 10;
         if (x >= 0 && y >= 0 && x < mBitmap.getWidth() && y < mBitmap.getHeight()) {
-            mApp.mChrData.setTargetDot(0, x, y, c);
-            mBitmap.setPixel(x, y, mApp.mColData.getColor(mApp.mPalIdx, c));
+            mApp.mChrData.setTargetDot(0, x, y, mColIdx);
+            mBitmap.setPixel(x, y, mApp.mColData.getColor(mApp.mPalIdx, mColIdx));
             mMgView.invalidateUnit(x, y);
         }
         return true;

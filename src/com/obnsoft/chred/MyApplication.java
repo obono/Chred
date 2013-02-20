@@ -17,7 +17,9 @@
 package com.obnsoft.chred;
 
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 
 import android.app.Application;
 import android.content.res.AssetManager;
@@ -62,9 +64,26 @@ public class MyApplication extends Application {
                 Log.e("CHRED", "Failed to load palette.");
             }
             in.close();
-        } catch (Exception e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
+    public void saveData() {
+        OutputStream out;
+        try {
+            out = openFileOutput("chara.ptc", MODE_PRIVATE);
+            if (!mChrData.saveToStream(out, "android")) {
+                Log.e("CHRED", "Failed to save character.");
+            }
+            out.close();
+            out = openFileOutput("palette.ptc", MODE_PRIVATE);
+            if (!mColData.saveToStream(out, "android")) {
+                Log.e("CHRED", "Failed to save palette.");
+            }
+            out.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 }

@@ -26,11 +26,9 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_toLeftOf="@id/spin_size"
-        android:numColumns="4"
-        android:columnWidth="64dip"
+        android:numColumns="auto_fit"
         android:horizontalSpacing="8dip"
         android:verticalSpacing="8dip"
-        android:stretchMode="columnWidth"
         android:gravity="center"
         />
 

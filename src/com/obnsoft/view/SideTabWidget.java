@@ -19,7 +19,6 @@ package com.obnsoft.view;
 import android.content.Context;
 import android.util.AttributeSet;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.TabWidget;
 
@@ -36,9 +35,8 @@ public class SideTabWidget extends TabWidget {
 
     @Override
     public void addView(View child) {
-        if (true || child.getLayoutParams() == null) {
-            final LinearLayout.LayoutParams lp = new LayoutParams(
-            ViewGroup.LayoutParams.MATCH_PARENT, 0, 1.0f);
+        if (true/*child.getLayoutParams() == null*/) {
+            final LayoutParams lp = new LayoutParams(LayoutParams.MATCH_PARENT, 0, 1.0f);
             lp.setMargins(0, 0, 0, 0);
             child.setLayoutParams(lp);
         }

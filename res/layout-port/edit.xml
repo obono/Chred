@@ -22,6 +22,24 @@
         android:src="@android:drawable/ic_menu_edit"
         android:onClick="onClickDrawButton"
         />
+    <Spinner
+        android:id="@+id/spin_palette"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignTop="@id/btn_draw"
+        android:layout_toLeftOf="@id/btn_draw"
+        android:prompt="@string/palette"
+        android:entries="@array/palette"
+        />
+    <Spinner
+        android:id="@+id/spin_color"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignTop="@id/spin_palette"
+        android:layout_toLeftOf="@id/spin_palette"
+        android:prompt="@string/color"
+        android:entries="@array/palette"
+        />
     <com.obnsoft.view.MagnifyView
         android:id="@+id/view_edit"
         android:layout_width="match_parent"
