@@ -157,7 +157,7 @@ public class ChrsActivity extends Activity implements OnItemSelectedListener {
         }
 
         mPalSpinner = (Spinner) findViewById(R.id.spin_palette);
-        mPalSpinner.setAdapter(new PaletteAdapter(this, mApp.mColData));
+        mPalSpinner.setAdapter(mApp.mPalAdapter);
         mPalSpinner.setOnItemSelectedListener(this);
 
         mAdapter = new MyAdapter();

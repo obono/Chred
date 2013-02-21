@@ -40,20 +40,20 @@ public class MainActivity extends TabActivity {
 
         intent = new Intent().setClass(this, ChrsActivity.class);
         view = View.inflate(this, R.layout.tab, null);
-        ((TextView) view.findViewById(R.id.tabtext)).setText(R.string.target);
-        ((ImageView) view.findViewById(R.id.tabicon)).setImageResource(R.drawable.icon);
+        ((TextView) view.findViewById(R.id.tab_text)).setText(R.string.target);
+        ((ImageView) view.findViewById(R.id.tab_icon)).setImageResource(R.drawable.icon);
         tabHost.addTab(tabHost.newTabSpec("target").setIndicator(view).setContent(intent));
 
         intent = new Intent().setClass(this, EditActivity.class);
         view = View.inflate(this, R.layout.tab, null);
-        ((TextView) view.findViewById(R.id.tabtext)).setText(R.string.edit);
-        ((ImageView) view.findViewById(R.id.tabicon)).setImageResource(R.drawable.icon);
+        ((TextView) view.findViewById(R.id.tab_text)).setText(R.string.edit);
+        ((ImageView) view.findViewById(R.id.tab_icon)).setImageResource(R.drawable.icon);
         tabHost.addTab(tabHost.newTabSpec("edit").setIndicator(view).setContent(intent));
 
         intent = new Intent().setClass(this, PaletteActivity.class);
         view = View.inflate(this, R.layout.tab, null);
-        ((TextView) view.findViewById(R.id.tabtext)).setText(R.string.palette);
-        ((ImageView) view.findViewById(R.id.tabicon)).setImageResource(R.drawable.icon);
+        ((TextView) view.findViewById(R.id.tab_text)).setText(R.string.palette);
+        ((ImageView) view.findViewById(R.id.tab_icon)).setImageResource(R.drawable.icon);
         tabHost.addTab(tabHost.newTabSpec("palette").setIndicator(view).setContent(intent));
 
         if (mApp.mCurTab != null) {

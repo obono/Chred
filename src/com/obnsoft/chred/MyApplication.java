@@ -35,6 +35,7 @@ public class MyApplication extends Application {
 
     public ChrData mChrData;
     public ColData mColData;
+    public PaletteAdapter mPalAdapter;
 
     private static final String TAG = "CHRED";
 
@@ -57,6 +58,7 @@ public class MyApplication extends Application {
         mChrData = new ChrData();
         mColData = new ColData();
         mChrData.setColData(mColData);
+        mPalAdapter = new PaletteAdapter(this, mColData);
 
         AssetManager as = getResources().getAssets();
         InputStream in;
@@ -86,6 +88,7 @@ public class MyApplication extends Application {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
         mChrIdx = prefs.getInt(PREF_KEY_CHR, 0);
         mPalIdx = prefs.getInt(PREF_KEY_PAL, 2);
+        mCurTab = prefs.getString(PREF_KEY_TAB, null);
         mChrData.setTargetSize(prefs.getInt(PREF_KEY_HUNITS, 2), prefs.getInt(PREF_KEY_VUNITS, 2));
     }
 

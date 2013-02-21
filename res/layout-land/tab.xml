@@ -5,18 +5,18 @@
     android:background="@drawable/tab_bg"
     >
     <ImageView
-        android:id="@+id/tabicon"
+        android:id="@+id/tab_icon"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerInParent="true"
         />
     <TextView
-        android:id="@+id/tabtext"
+        android:id="@+id/tab_text"
         android:layout_width="0px"
         android:layout_height="wrap_content"
-        android:layout_below="@id/tabicon"
-        android:layout_alignLeft="@id/tabicon"
-        android:layout_alignRight="@id/tabicon"
+        android:layout_below="@id/tab_icon"
+        android:layout_alignLeft="@id/tab_icon"
+        android:layout_alignRight="@id/tab_icon"
         android:gravity="center"
         />
 </RelativeLayout>

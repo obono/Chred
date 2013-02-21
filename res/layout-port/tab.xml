@@ -5,16 +5,16 @@
     android:background="@drawable/tab_bg"
     >
     <ImageView
-        android:id="@+id/tabicon"
+        android:id="@+id/tab_icon"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         />
     <TextView
-        android:id="@+id/tabtext"
+        android:id="@+id/tab_text"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_centerVertical="true"
-        android:layout_toRightOf="@id/tabicon"
+        android:layout_toRightOf="@id/tab_icon"
         android:gravity="center"
         />
 </RelativeLayout>

@@ -69,8 +69,8 @@ public class ColData {
             int offset = HEADER2.length;
             for (int i = 0; i < mColor.length; i++) {
                 int val = data[offset + i * 2] & 0xFF | data[offset + i * 2 + 1] << 8 & 0x7F00;
-                mColor[i] = Color.rgb(
-                        (val & 0x1F) << 3, (val >> 5 & 0x1F) << 3, (val >> 10 & 0x1F) << 3);
+                mColor[i] = Color.rgb(bits5To8(val & 0x1F),
+                        bits5To8(val >> 5 & 0x1F), bits5To8(val >> 10 & 0x1F));
             }
             return true;
         }
@@ -91,4 +91,7 @@ public class ColData {
         return Utils.saveToStreamCommon(out, strName, HEADER1, data);
     }
 
+    public static int bits5To8(int val) {
+        return val << 3 | val >> 2;
+    }
 }
