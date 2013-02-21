@@ -89,7 +89,7 @@ public class PaletteAdapter extends BaseAdapter {
         TextView textView = (TextView) convertView;
         if (textView == null) {
             textView = new TextView(mContext);
-            textView.setTextAppearance(mContext, android.R.style.TextAppearance_Medium_Inverse);
+            textView.setTextAppearance(mContext, android.R.style.TextAppearance_Inverse);
         }
         textView.setText(String.valueOf(pos));
         return textView;

@@ -23,26 +23,26 @@
         android:onClick="onClickDrawButton"
         />
     <Spinner
-        android:id="@+id/spin_palette"
+        android:id="@+id/spin_color"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_above="@id/btn_draw"
         android:layout_alignParentRight="true"
-        android:prompt="@string/palette"
-        />
-    <Spinner
-        android:id="@+id/spin_color"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_above="@id/spin_palette"
-        android:layout_alignParentRight="true"
         android:prompt="@string/color"
         android:entries="@array/color"
+        />
+    <Spinner
+        android:id="@+id/spin_palette"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentRight="true"
+        android:prompt="@string/palette"
         />
     <com.obnsoft.view.MagnifyView
         android:id="@+id/view_edit"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_toLeftOf="@id/btn_move"
+        android:layout_toLeftOf="@id/spin_palette"
         />
 </RelativeLayout>
