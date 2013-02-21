@@ -29,8 +29,9 @@ import android.util.Log;
 
 public class MyApplication extends Application {
 
-    public int mChrIdx = 0;
-    public int mPalIdx = 2;
+    public int mChrIdx;
+    public int mPalIdx;
+    public String mCurTab;
 
     public ChrData mChrData;
     public ColData mColData;
@@ -41,6 +42,7 @@ public class MyApplication extends Application {
 
     private static final String PREF_KEY_CHR = "chara";
     private static final String PREF_KEY_PAL = "palette";
+    private static final String PREF_KEY_TAB = "tab";
     private static final String PREF_KEY_HUNITS = "h_units";
     private static final String PREF_KEY_VUNITS = "v_units";
 
@@ -90,24 +92,32 @@ public class MyApplication extends Application {
         SharedPreferences.Editor editor = prefs.edit();
         editor.putInt(PREF_KEY_CHR, mChrIdx);
         editor.putInt(PREF_KEY_PAL, mPalIdx);
+        editor.putString(PREF_KEY_TAB, mCurTab);
         editor.putInt(PREF_KEY_HUNITS, mChrData.getTargetSizeH());
         editor.putInt(PREF_KEY_VUNITS, mChrData.getTargetSizeV());
         editor.commit();
 
         OutputStream out;
         try {
-            out = openFileOutput(FNAME_CHR, MODE_PRIVATE);
-            if (!mChrData.saveToStream(out, PTC_KEYWORD)) {
-                Log.e("CHRED", "Failed to save character.");
+            if (mChrData.getDirty()) {
+                out = openFileOutput(FNAME_CHR, MODE_PRIVATE);
+                if (!mChrData.saveToStream(out, PTC_KEYWORD)) {
+                    Log.e("CHRED", "Failed to save character.");
+                }
+                out.close();
+                mChrData.resetDirty();
             }
-            out.close();
-            out = openFileOutput(FNAME_COL, MODE_PRIVATE);
-            if (!mColData.saveToStream(out, PTC_KEYWORD)) {
-                Log.e("CHRED", "Failed to save palette.");
+            if (mColData.getDirty()) {
+                out = openFileOutput(FNAME_COL, MODE_PRIVATE);
+                if (!mColData.saveToStream(out, PTC_KEYWORD)) {
+                    Log.e("CHRED", "Failed to save palette.");
+                }
+                out.close();
+                mColData.resetDirty();
             }
-            out.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
+
 }

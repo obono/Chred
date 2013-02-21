@@ -69,10 +69,12 @@ public class ChrsActivity extends Activity implements OnItemSelectedListener {
         }
         @Override
         public void draw(Canvas canvas) {
+            if (mBitmap != null) {
             mSrcRect.set(0, mPos * mChrHeight, mChrWidth, (mPos + 1) * mChrHeight);
             canvas.drawBitmap(mBitmap, mSrcRect, mDestRect, null);
             canvas.drawRect(mDestRect.left - 1, mDestRect.top - 1,
                     mDestRect.right, mDestRect.bottom, mPaint);
+            }
         }
     }
 

@@ -18,47 +18,54 @@ package com.obnsoft.chred;
 
 import android.app.TabActivity;
 import android.content.Intent;
-import android.content.res.Resources;
 import android.os.Bundle;
+import android.view.View;
+import android.widget.ImageView;
 import android.widget.TabHost;
+import android.widget.TextView;
 
 public class MainActivity extends TabActivity {
+
+    MyApplication mApp;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
+        mApp = (MyApplication) getApplication();
 
         TabHost tabHost = getTabHost();
-        TabHost.TabSpec spec;
-        Resources res = getResources();
+        View view;
         Intent intent;
 
         intent = new Intent().setClass(this, ChrsActivity.class);
-        spec = tabHost.newTabSpec("target")
-                .setIndicator(getString(R.string.target), res.getDrawable(R.drawable.icon))
-                .setContent(intent);
-        tabHost.addTab(spec);
+        view = View.inflate(this, R.layout.tab, null);
+        ((TextView) view.findViewById(R.id.tabtext)).setText(R.string.target);
+        ((ImageView) view.findViewById(R.id.tabicon)).setImageResource(R.drawable.icon);
+        tabHost.addTab(tabHost.newTabSpec("target").setIndicator(view).setContent(intent));
 
         intent = new Intent().setClass(this, EditActivity.class);
-        spec = tabHost.newTabSpec("edit")
-                .setIndicator(getString(R.string.edit), res.getDrawable(R.drawable.icon))
-                .setContent(intent);
-        tabHost.addTab(spec);
+        view = View.inflate(this, R.layout.tab, null);
+        ((TextView) view.findViewById(R.id.tabtext)).setText(R.string.edit);
+        ((ImageView) view.findViewById(R.id.tabicon)).setImageResource(R.drawable.icon);
+        tabHost.addTab(tabHost.newTabSpec("edit").setIndicator(view).setContent(intent));
 
         intent = new Intent().setClass(this, PaletteActivity.class);
-        spec = tabHost.newTabSpec("palette")
-              .setIndicator(getString(R.string.palette), res.getDrawable(R.drawable.icon))
-              .setContent(intent);
-        tabHost.addTab(spec);
+        view = View.inflate(this, R.layout.tab, null);
+        ((TextView) view.findViewById(R.id.tabtext)).setText(R.string.palette);
+        ((ImageView) view.findViewById(R.id.tabicon)).setImageResource(R.drawable.icon);
+        tabHost.addTab(tabHost.newTabSpec("palette").setIndicator(view).setContent(intent));
 
-        tabHost.setCurrentTab(0);
+        if (mApp.mCurTab != null) {
+            tabHost.setCurrentTabByTag(mApp.mCurTab);
+        }
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        ((MyApplication) getApplication()).saveData();
+        mApp.mCurTab = getTabHost().getCurrentTabTag();
+        mApp.saveData();
     }
 
 }

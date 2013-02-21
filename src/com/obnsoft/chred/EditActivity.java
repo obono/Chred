@@ -81,7 +81,7 @@ public class EditActivity extends Activity
     @Override
     public boolean onTouchEventUnit(MotionEvent ev, int x, int y) {
         if (x >= 0 && y >= 0 && x < mBitmap.getWidth() && y < mBitmap.getHeight()) {
-            mApp.mChrData.setTargetDot(0, x, y, mColIdx);
+            mApp.mChrData.setTargetDot(mApp.mChrIdx, x, y, mColIdx);
             mBitmap.setPixel(x, y, mApp.mColData.getColor(mApp.mPalIdx, mColIdx));
             mMgView.invalidateUnit(x, y);
         }

@@ -31,6 +31,7 @@ public class ColData {
     private static final byte[] HEADER2 =
             {'P', 'E', 'T', 'C', '0', '1', '0', '0', 'R', 'C', 'O', 'L'};
 
+    private boolean mDirty = false;
     private int[] mColor = new int[COLS_PER_PAL * MAX_PALS];
 
     /*-----------------------------------------------------------------------*/
@@ -43,6 +44,14 @@ public class ColData {
         }
     }
 
+    public void resetDirty() {
+        mDirty = false;
+    }
+
+    public boolean getDirty() {
+        return mDirty;
+    }
+
     public int getColor(int pal, int c) {
         if (pal < 0 || pal >= MAX_PALS || c < 0 || c >= COLS_PER_PAL) return Color.TRANSPARENT;
         return mColor[pal << 4 | c] & ((c == 0) ? 0x80FFFFFF : Color.WHITE);
@@ -51,6 +60,7 @@ public class ColData {
     public void setColor(int pal, int c, int val) {
         if (pal < 0 || pal >= MAX_PALS || c < 0 || c >= COLS_PER_PAL) return;
         mColor[pal << 4 | c] = val | 0xFF000000;
+        mDirty = true;
     }
 
     public boolean loadFromStream(InputStream in) {

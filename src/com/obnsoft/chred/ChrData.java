@@ -34,6 +34,7 @@ public class ChrData {
 
     private int mHUnits = 2;
     private int mVUnits = 2;
+    private boolean mDirty = false;
 
     private ColData mColData;
     private ChrUnit[] mChrs;
@@ -53,6 +54,7 @@ public class ChrData {
             //if (x < 0 || x >= UNIT_SIZE || y < 0 || y >= UNIT_SIZE) return;
             //if (c < 0 || c >= ColData.COLS_PER_PAL) return;
             mDots[y * UNIT_SIZE + x] = (byte) c;
+            mDirty = true;
         }
 
         public void drawUnit(Bitmap bmp, int pal) {
@@ -110,6 +112,14 @@ public class ChrData {
 
     public int getTargetSizeV() {
         return mVUnits;
+    }
+
+    public void resetDirty() {
+        mDirty = false;
+    }
+
+    public boolean getDirty() {
+        return mDirty;
     }
 
     public void setTargetSize(int hUnits, int vUnits) {
