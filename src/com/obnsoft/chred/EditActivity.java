@@ -53,6 +53,7 @@ public class EditActivity extends Activity
         Spinner spinner = (Spinner) findViewById(R.id.spin_color);
         spinner.setOnItemSelectedListener(this);
         mPalSpinner = (Spinner) findViewById(R.id.spin_palette);
+        mPalSpinner.setAdapter(new PaletteAdapter(this, mApp.mColData));
         mPalSpinner.setOnItemSelectedListener(this);
     }
 

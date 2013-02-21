@@ -29,7 +29,6 @@
         android:layout_alignTop="@id/btn_draw"
         android:layout_toLeftOf="@id/btn_draw"
         android:prompt="@string/palette"
-        android:entries="@array/palette"
         />
     <Spinner
         android:id="@+id/spin_color"
@@ -38,7 +37,7 @@
         android:layout_alignTop="@id/spin_palette"
         android:layout_toLeftOf="@id/spin_palette"
         android:prompt="@string/color"
-        android:entries="@array/palette"
+        android:entries="@array/color"
         />
     <com.obnsoft.view.MagnifyView
         android:id="@+id/view_edit"

@@ -36,6 +36,8 @@ public class MyApplication extends Application {
     public ChrData mChrData;
     public ColData mColData;
 
+    private static final String TAG = "CHRED";
+
     private static final String FNAME_CHR = "chara.ptc";
     private static final String FNAME_COL = "palette.ptc";
     private static final String PTC_KEYWORD = "android";
@@ -65,7 +67,7 @@ public class MyApplication extends Application {
                 in = as.open("spu1.ptc");
             }
             if (!mChrData.loadFromStream(in)) {
-                Log.e("CHRED", "Failed to load character.");
+                Log.e(TAG, "Failed to load character.");
             }
             in.close();
             try {
@@ -74,7 +76,7 @@ public class MyApplication extends Application {
                 in = as.open("palette.ptc");
             }
             if (!mColData.loadFromStream(in)) {
-                Log.e("CHRED", "Failed to load palette.");
+                Log.e(TAG, "Failed to load palette.");
             }
             in.close();
         } catch (IOException e) {
@@ -102,7 +104,7 @@ public class MyApplication extends Application {
             if (mChrData.getDirty()) {
                 out = openFileOutput(FNAME_CHR, MODE_PRIVATE);
                 if (!mChrData.saveToStream(out, PTC_KEYWORD)) {
-                    Log.e("CHRED", "Failed to save character.");
+                    Log.e(TAG, "Failed to save character.");
                 }
                 out.close();
                 mChrData.resetDirty();
@@ -110,7 +112,7 @@ public class MyApplication extends Application {
             if (mColData.getDirty()) {
                 out = openFileOutput(FNAME_COL, MODE_PRIVATE);
                 if (!mColData.saveToStream(out, PTC_KEYWORD)) {
-                    Log.e("CHRED", "Failed to save palette.");
+                    Log.e(TAG, "Failed to save palette.");
                 }
                 out.close();
                 mColData.resetDirty();

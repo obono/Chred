@@ -19,7 +19,6 @@
         android:layout_alignParentBottom="true"
         android:layout_toLeftOf="@id/spin_size"
         android:prompt="@string/palette"
-        android:entries="@array/palette"
         />
     <GridView
         android:id="@+id/grid_chrs"
