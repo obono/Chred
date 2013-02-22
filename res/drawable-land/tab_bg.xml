@@ -3,9 +3,8 @@
     <item android:state_selected="true">
         <shape android:shape="rectangle">
             <gradient
-                android:angle="180"
-                android:startColor="#000"
-                android:endColor="#444"
+                android:startColor="#777"
+                android:endColor="#000"
                 android:type="linear"
                 />
         </shape>
@@ -13,12 +12,14 @@
     <item android:state_selected="false">
         <shape android:shape="rectangle">
             <gradient
-                android:angle="180"
-                android:startColor="#222"
-                android:endColor="#000"
+                android:startColor="#000"
+                android:endColor="#444"
                 android:type="linear"
                 />
-            <stroke android:width="2dip" android:color="#000" />
+            <stroke
+                android:width="2dp"
+                android:color="#000"
+                />
         </shape>
     </item>
 </selector>
