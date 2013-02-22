@@ -1,7 +1,6 @@
 package com.obnsoft.chred;
 
 import android.content.Context;
-import android.content.res.Resources;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -27,10 +26,9 @@ public class PaletteAdapter extends BaseAdapter {
         private Drawable mCheckMark;
         public PaletteView(Context context) {
             super(context);
-            Resources res = context.getResources();
-            mCheckMark = res.getDrawable(android.R.drawable.btn_radio);
+            mCheckMark = context.getResources().getDrawable(android.R.drawable.btn_radio);
             setCheckMarkDrawable(mCheckMark);
-            int padding = (int) (6f * res.getDisplayMetrics().density);
+            int padding = Utils.dp2px(context, 6);
             setPadding(padding, padding, padding, padding);
             setTextAppearance(mContext, android.R.style.TextAppearance_Widget_DropDownItem);
         }

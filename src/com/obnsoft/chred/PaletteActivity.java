@@ -17,72 +17,28 @@
 package com.obnsoft.chred;
 
 import com.obnsoft.view.ColorPickerInterface;
-import com.obnsoft.view.HSVColorPickerView;
 
 import android.app.Activity;
-import android.content.Context;
-import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.Paint;
 import android.os.Bundle;
-import android.view.Gravity;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemSelectedListener;
-import android.widget.LinearLayout;
-import android.widget.LinearLayout.LayoutParams;
 import android.widget.Spinner;
-import android.widget.TextView;
 
-public class PaletteActivity extends Activity
-        implements OnItemSelectedListener, ColorPickerInterface.OnColorChangedListener {
+public class PaletteActivity extends Activity implements OnItemSelectedListener,
+        ColorPickerInterface.OnColorChangedListener, OnClickListener {
 
     private int mColIdx;
 
     private Paint mPaint = new Paint();
 
     private MyApplication mApp;
-    private ColorPickerInterface mColPicker;
+    private PaletteView mPalView;
+    private PaletteView.ColorView mColView;
     private Spinner mPalSpinner;
-    private ColorView[] mColors = new ColorView[ColData.COLS_PER_PAL];
-
-    /*-----------------------------------------------------------------------*/
-
-    class ColorView extends TextView implements OnClickListener {
-        private int mIdx;
-        public ColorView(Context context, int idx) {
-            super(context);
-            setGravity(Gravity.CENTER);
-            setOnClickListener(this);
-            mIdx = idx;
-        }
-        @Override
-        public void draw(Canvas canvas) {
-            super.draw(canvas);
-            if (isSelected()) {
-                for (int i = 0; i < 3; i++) {
-                    mPaint.setColor((i == 1) ? Color.BLACK : Color.WHITE);
-                    canvas.drawRect(i, i, getWidth() - i - 1, getHeight() - i - 1, mPaint);
-                }
-            }
-        }
-        @Override
-        public void setBackgroundColor(int color) {
-            super.setBackgroundColor(color);
-            setText(String.format("#%06X", color & 0xFFFFFF));
-            setTextColor((HSVColorPickerView.calcBrightness(color) < 0.5) ?
-                    Color.WHITE : Color.BLACK);
-        }
-        @Override
-        public void onClick(View v) {
-            mColIdx = mIdx;
-            for (int i = 0; i < mColors.length; i++) {
-                mColors[i].setSelected(i == mIdx);
-            }
-            mColPicker.setColor(mApp.mColData.getColor(mApp.mPalIdx, mColIdx));
-        }
-    }
+    private ColorPickerInterface mColPicker;
 
     /*-----------------------------------------------------------------------*/
 
@@ -94,45 +50,45 @@ public class PaletteActivity extends Activity
         mApp = (MyApplication) getApplication();
         mPaint.setStyle(Paint.Style.STROKE);
 
-        mColPicker = (ColorPickerInterface) findViewById(R.id.colpicker_hsv);
-        mColPicker.setListener(this);
+        mPalView = (PaletteView) findViewById(R.id.palview);
+        mPalView.setPalette(mApp.mColData, mApp.mPalIdx);
+        mColView = mPalView.setSelection(0);
+        mPalView.setOnClickListener(this);
 
         mPalSpinner = (Spinner) findViewById(R.id.spin_palette);
         mPalSpinner.setAdapter(mApp.mPalAdapter);
         mPalSpinner.setOnItemSelectedListener(this);
 
-        LinearLayout ll = (LinearLayout) findViewById(R.id.table_palette);
-        LayoutParams lp = new LayoutParams(
-                LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT, 1f);
-        int margin = (int) (4f * getResources().getDisplayMetrics().density);
-        lp.setMargins(margin, margin, margin, margin);
-        for (int i = 0; i < 4; i++) {
-            LinearLayout row = new LinearLayout(this);
-            for (int j = 0; j < 4; j++) {
-                int idx = i * 4 + j;
-                mColors[idx] = new ColorView(this, idx);
-                row.addView(mColors[idx], lp);
-            }
-            ll.addView(row,lp);
-        }
-        mColors[mColIdx].onClick(mColors[mColIdx]);
-        setButtonsColor();
+        mColPicker = (ColorPickerInterface) findViewById(R.id.colpicker_hsv);
+        mColPicker.setListener(this);
     }
 
     @Override
     protected void onResume() {
+        if (mPalSpinner.getSelectedItemPosition() != mApp.mPalIdx) {
+            mPalSpinner.setSelection(mApp.mPalIdx);
+        } else {
+            mPalView.setPalette(mApp.mColData, mApp.mPalIdx);
+        }
         super.onResume();
-        mPalSpinner.setSelection(mApp.mPalIdx);
     }
 
     /*-----------------------------------------------------------------------*/
+
+    @Override
+    public void onClick(View view) {
+        mColView = (PaletteView.ColorView) view;
+        mColIdx = mColView.getIndex();
+        mPalView.setSelection(mColIdx);
+        mColPicker.setColor(mApp.mColData.getColor(mApp.mPalIdx, mColIdx));
+    }
 
     @Override
     public void onItemSelected(AdapterView<?> parent, View view, int pos, long id) {
         Spinner spinner = (Spinner) parent;
         if (spinner == mPalSpinner) {
             mApp.mPalIdx = spinner.getSelectedItemPosition();
-            setButtonsColor();
+            mPalView.setPalette(mApp.mColData, mApp.mPalIdx);
         }
     }
     @Override
@@ -145,17 +101,7 @@ public class PaletteActivity extends Activity
         int pal = mApp.mPalIdx;
         mApp.mColData.setColor(pal, mColIdx, color);
         color = mApp.mColData.getColor(pal, mColIdx);
-        mColors[mColIdx].setBackgroundColor(color);
-    }
-
-    /*-----------------------------------------------------------------------*/
-
-    private void setButtonsColor() {
-        int pal = mApp.mPalIdx;
-        for (int i = 0; i < mColors.length; i++) {
-            mColors[i].setBackgroundColor(mApp.mColData.getColor(pal, i));
-        }
-        mColPicker.setColor(mApp.mColData.getColor(pal, mColIdx));
+        mColView.setBackgroundColor(color);
     }
 
 }

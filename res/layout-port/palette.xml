@@ -18,9 +18,8 @@
         android:layout_alignParentLeft="true"
         android:prompt="@string/palette"
         />
-    <LinearLayout
-        android:id="@+id/table_palette"
-        android:orientation="vertical"
+    <com.obnsoft.chred.PaletteView
+        android:id="@+id/palview"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_above="@id/colpicker_hsv"

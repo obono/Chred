@@ -23,6 +23,8 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 
+import android.content.Context;
+
 public class Utils {
 
     private static final byte[] MD5HEADER =
@@ -78,6 +80,10 @@ public class Utils {
             return false;
         }
         return true;
+    }
+
+    public static int dp2px(Context context, float dp) {
+        return (int) (dp * context.getResources().getDisplayMetrics().density);
     }
 
 }
