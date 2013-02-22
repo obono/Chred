@@ -19,12 +19,17 @@ package com.obnsoft.chred;
 import com.obnsoft.view.MagnifyView;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.widget.AdapterView;
+import android.widget.CheckBox;
+import android.widget.ImageButton;
 import android.widget.Spinner;
 import android.widget.AdapterView.OnItemSelectedListener;
 
@@ -36,8 +41,10 @@ public class EditActivity extends Activity
     private Bitmap mBitmap;
 
     private MyApplication mApp;
-    private Spinner mPalSpinner;
     private MagnifyView mMgView;
+    private Spinner mPalSpinner;
+    private CheckBox mMoveBtn;
+    private GradientDrawable mColDrawable;
 
     /*-----------------------------------------------------------------------*/
 
@@ -50,23 +57,28 @@ public class EditActivity extends Activity
         mMgView = (MagnifyView) findViewById(R.id.view_edit);
         mMgView.setGridColor(Color.GRAY, false);
 
-        Spinner spinner = (Spinner) findViewById(R.id.spin_color);
-        spinner.setOnItemSelectedListener(this);
         mPalSpinner = (Spinner) findViewById(R.id.spin_palette);
         mPalSpinner.setAdapter(mApp.mPalAdapter);
         mPalSpinner.setOnItemSelectedListener(this);
+
+        mMoveBtn = (CheckBox) findViewById(R.id.btn_move);
+
+        ImageButton btn = (ImageButton) findViewById(R.id.btn_draw);
+        mColDrawable = (GradientDrawable) btn.getDrawable();
+        mColDrawable.setColor(mApp.mColData.getColor(mApp.mPalIdx, mColIdx));
     }
 
     @Override
     protected void onResume() {
-        super.onResume();
         mPalSpinner.setSelection(mApp.mPalIdx);
-
         ChrData chrData = mApp.mChrData;
         mBitmap = Bitmap.createBitmap(chrData.getTargetSizeH() * ChrData.UNIT_SIZE,
                 chrData.getTargetSizeV() * ChrData.UNIT_SIZE, Bitmap.Config.ARGB_8888);
         chrData.drawTarget(mBitmap, mApp.mChrIdx, mApp.mPalIdx);
         mMgView.setBitmap(mBitmap);
+        mColDrawable.setColor(mApp.mColData.getColor(mApp.mPalIdx, mColIdx));
+
+        super.onResume();
     }
 
     @Override
@@ -96,8 +108,6 @@ public class EditActivity extends Activity
             mApp.mPalIdx = spinner.getSelectedItemPosition();
             mApp.mChrData.drawTarget(mBitmap, mApp.mChrIdx, mApp.mPalIdx);
             mMgView.invalidate();
-        } else {
-            mColIdx = spinner.getSelectedItemPosition();
         }
     }
 
@@ -109,11 +119,30 @@ public class EditActivity extends Activity
     /*-----------------------------------------------------------------------*/
 
     public void onClickMoveButton(View v) {
-        mMgView.setEventHandler(null);
+        mMgView.setEventHandler(mMoveBtn.isChecked() ? null : this);
     }
 
     public void onClickDrawButton(View v) {
-        mMgView.setEventHandler(this);
+        PaletteView palView = new PaletteView(this, null);
+        palView.setPalette(mApp.mColData, mApp.mPalIdx);
+        palView.setSelection(mColIdx);
+        final AlertDialog dlg = new AlertDialog.Builder(this)
+                .setTitle(R.string.color)
+                .setView(palView)
+                .setNegativeButton(android.R.string.cancel, null)
+                .create();
+        palView.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                PaletteView.ColorView colView = (PaletteView.ColorView) view;
+                mColIdx = colView.getIndex();
+                mColDrawable.setColor(mApp.mColData.getColor(mApp.mPalIdx, mColIdx));
+                dlg.dismiss();
+                mMoveBtn.setChecked(false);
+                mMgView.setEventHandler(EditActivity.this);
+            }
+        });
+        dlg.show();
     }
 
 }

@@ -4,13 +4,13 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     >
-    <ImageButton
+    <CheckBox
         android:id="@+id/btn_move"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_alignParentRight="true"
-        android:src="@android:drawable/ic_menu_crop"
+        android:button="@drawable/btn_move"
         android:onClick="onClickMoveButton"
         />
     <ImageButton
@@ -19,17 +19,8 @@
         android:layout_height="wrap_content"
         android:layout_alignRight="@id/btn_move"
         android:layout_above="@id/btn_move"
-        android:src="@android:drawable/ic_menu_edit"
+        android:src="@drawable/btn_color"
         android:onClick="onClickDrawButton"
-        />
-    <Spinner
-        android:id="@+id/spin_color"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_above="@id/btn_draw"
-        android:layout_alignParentRight="true"
-        android:prompt="@string/color"
-        android:entries="@array/color"
         />
     <Spinner
         android:id="@+id/spin_palette"

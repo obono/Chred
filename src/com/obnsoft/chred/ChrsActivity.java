@@ -137,7 +137,7 @@ public class ChrsActivity extends Activity implements OnItemSelectedListener {
         setContentView(R.layout.chrs);
 
         mApp = (MyApplication) getApplication();
-        mChrScale = (int) (4f * getResources().getDisplayMetrics().density);
+        mChrScale = Utils.dp2px(this, 4);
         mPaint.setColor(Color.WHITE);
         mPaint.setStyle(Paint.Style.STROKE);
         mGridItemTextLayout = new RelativeLayout.LayoutParams(
@@ -174,12 +174,12 @@ public class ChrsActivity extends Activity implements OnItemSelectedListener {
 
     @Override
     protected void onResume() {
-        super.onResume();
         if (mPalSpinner.getSelectedItemPosition() != mApp.mPalIdx) {
             mPalSpinner.setSelection(mApp.mPalIdx);
         } else {
             drawChrsBitmap();
         }
+        super.onResume();
     }
 
     @Override
