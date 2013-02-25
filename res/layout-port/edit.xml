@@ -1,27 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     >
-    <CheckBox
-        android:id="@+id/btn_move"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentRight="true"
-        android:button="@drawable/btn_move"
-        android:onClick="onClickMoveButton"
-        />
-    <ImageButton
-        android:id="@+id/btn_draw"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignTop="@id/btn_move"
-        android:layout_toLeftOf="@id/btn_move"
-        android:src="@drawable/btn_color"
-        android:onClick="onClickDrawButton"
-        />
     <Spinner
         android:id="@+id/spin_palette"
         android:layout_width="wrap_content"
@@ -29,6 +10,23 @@
         android:layout_alignParentBottom="true"
         android:layout_alignParentLeft="true"
         android:prompt="@string/palette"
+        />
+    <ToggleButton
+        android:id="@+id/btn_move"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
+        android:onClick="onClickMoveButton"
+        style="@style/MyToggleMove"
+        />
+    <com.obnsoft.chred.ColorView
+        android:id="@+id/btn_draw"
+        android:layout_width="80sp"
+        android:layout_height="wrap_content"
+        android:layout_alignTop="@id/btn_move"
+        android:layout_toLeftOf="@id/btn_move"
+        android:onClick="onClickDrawButton"
         />
     <com.obnsoft.view.MagnifyView
         android:id="@+id/view_edit"

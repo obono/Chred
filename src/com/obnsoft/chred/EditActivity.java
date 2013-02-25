@@ -22,29 +22,25 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.graphics.Bitmap;
 import android.graphics.Color;
-import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.AdapterView;
-import android.widget.CheckBox;
-import android.widget.ImageButton;
 import android.widget.Spinner;
 import android.widget.AdapterView.OnItemSelectedListener;
+import android.widget.ToggleButton;
 
 public class EditActivity extends Activity
         implements MagnifyView.EventHandler, OnItemSelectedListener {
-
-    private int mColIdx;
 
     private Bitmap mBitmap;
 
     private MyApplication mApp;
     private MagnifyView mMgView;
     private Spinner mPalSpinner;
-    private CheckBox mMoveBtn;
-    private GradientDrawable mColDrawable;
+    private ToggleButton mMoveBtn;
+    private ColorView mColView;
 
     /*-----------------------------------------------------------------------*/
 
@@ -61,11 +57,9 @@ public class EditActivity extends Activity
         mPalSpinner.setAdapter(mApp.mPalAdapter);
         mPalSpinner.setOnItemSelectedListener(this);
 
-        mMoveBtn = (CheckBox) findViewById(R.id.btn_move);
-
-        ImageButton btn = (ImageButton) findViewById(R.id.btn_draw);
-        mColDrawable = (GradientDrawable) btn.getDrawable();
-        mColDrawable.setColor(mApp.mColData.getColor(mApp.mPalIdx, mColIdx));
+        mMoveBtn = (ToggleButton) findViewById(R.id.btn_move);
+        mColView = (ColorView) findViewById(R.id.btn_draw);
+        mColView.setSelected(true);
     }
 
     @Override
@@ -76,7 +70,7 @@ public class EditActivity extends Activity
                 chrData.getTargetSizeV() * ChrData.UNIT_SIZE, Bitmap.Config.ARGB_8888);
         chrData.drawTarget(mBitmap, mApp.mChrIdx, mApp.mPalIdx);
         mMgView.setBitmap(mBitmap);
-        mColDrawable.setColor(mApp.mColData.getColor(mApp.mPalIdx, mColIdx));
+        setButtonsStatus();
 
         super.onResume();
     }
@@ -94,8 +88,8 @@ public class EditActivity extends Activity
     @Override
     public boolean onTouchEventUnit(MotionEvent ev, int x, int y) {
         if (x >= 0 && y >= 0 && x < mBitmap.getWidth() && y < mBitmap.getHeight()) {
-            mApp.mChrData.setTargetDot(mApp.mChrIdx, x, y, mColIdx);
-            mBitmap.setPixel(x, y, mApp.mColData.getColor(mApp.mPalIdx, mColIdx));
+            mApp.mChrData.setTargetDot(mApp.mChrIdx, x, y, mApp.mColIdx);
+            mBitmap.setPixel(x, y, mApp.mColData.getColor(mApp.mPalIdx, mApp.mColIdx));
             mMgView.invalidateUnit(x, y);
         }
         return true;
@@ -119,13 +113,13 @@ public class EditActivity extends Activity
     /*-----------------------------------------------------------------------*/
 
     public void onClickMoveButton(View v) {
-        mMgView.setEventHandler(mMoveBtn.isChecked() ? null : this);
+        setButtonsStatus();
     }
 
     public void onClickDrawButton(View v) {
         PaletteView palView = new PaletteView(this, null);
         palView.setPalette(mApp.mColData, mApp.mPalIdx);
-        palView.setSelection(mColIdx);
+        palView.setSelection(mApp.mColIdx);
         final AlertDialog dlg = new AlertDialog.Builder(this)
                 .setTitle(R.string.color)
                 .setView(palView)
@@ -134,15 +128,21 @@ public class EditActivity extends Activity
         palView.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View view) {
-                PaletteView.ColorView colView = (PaletteView.ColorView) view;
-                mColIdx = colView.getIndex();
-                mColDrawable.setColor(mApp.mColData.getColor(mApp.mPalIdx, mColIdx));
-                dlg.dismiss();
+                ColorView colView = (ColorView) view;
+                mApp.mColIdx = colView.getIndex();
                 mMoveBtn.setChecked(false);
-                mMgView.setEventHandler(EditActivity.this);
+                setButtonsStatus();
+                dlg.dismiss();
             }
         });
         dlg.show();
     }
 
+    /*-----------------------------------------------------------------------*/
+
+    private void setButtonsStatus() {
+        mMgView.setEventHandler(mMoveBtn.isChecked() ? null : this);
+        mColView.setIndex(mApp.mColIdx);
+        mColView.setColor(mApp.mColData.getColor(mApp.mPalIdx, mApp.mColIdx));
+    }
 }

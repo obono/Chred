@@ -30,13 +30,11 @@ import android.widget.Spinner;
 public class PaletteActivity extends Activity implements OnItemSelectedListener,
         ColorPickerInterface.OnColorChangedListener, OnClickListener {
 
-    private int mColIdx;
-
     private Paint mPaint = new Paint();
 
     private MyApplication mApp;
     private PaletteView mPalView;
-    private PaletteView.ColorView mColView;
+    private ColorView mColView;
     private Spinner mPalSpinner;
     private ColorPickerInterface mColPicker;
 
@@ -52,7 +50,7 @@ public class PaletteActivity extends Activity implements OnItemSelectedListener,
 
         mPalView = (PaletteView) findViewById(R.id.palview);
         mPalView.setPalette(mApp.mColData, mApp.mPalIdx);
-        mColView = mPalView.setSelection(0);
+        mColView = mPalView.setSelection(mApp.mColIdx);
         mPalView.setOnClickListener(this);
 
         mPalSpinner = (Spinner) findViewById(R.id.spin_palette);
@@ -70,6 +68,7 @@ public class PaletteActivity extends Activity implements OnItemSelectedListener,
         } else {
             mPalView.setPalette(mApp.mColData, mApp.mPalIdx);
         }
+        mColPicker.setColor(mApp.mColData.getColor(mApp.mPalIdx, mApp.mColIdx));
         super.onResume();
     }
 
@@ -77,10 +76,10 @@ public class PaletteActivity extends Activity implements OnItemSelectedListener,
 
     @Override
     public void onClick(View view) {
-        mColView = (PaletteView.ColorView) view;
-        mColIdx = mColView.getIndex();
-        mPalView.setSelection(mColIdx);
-        mColPicker.setColor(mApp.mColData.getColor(mApp.mPalIdx, mColIdx));
+        mColView = (ColorView) view;
+        mApp.mColIdx = mColView.getIndex();
+        mPalView.setSelection(mApp.mColIdx);
+        mColPicker.setColor(mApp.mColData.getColor(mApp.mPalIdx, mApp.mColIdx));
     }
 
     @Override
@@ -99,9 +98,9 @@ public class PaletteActivity extends Activity implements OnItemSelectedListener,
     @Override
     public void colorChanged(int color) {
         int pal = mApp.mPalIdx;
-        mApp.mColData.setColor(pal, mColIdx, color);
-        color = mApp.mColData.getColor(pal, mColIdx);
-        mColView.setBackgroundColor(color);
+        mApp.mColData.setColor(pal, mApp.mColIdx, color);
+        color = mApp.mColData.getColor(pal, mApp.mColIdx);
+        mColView.setColor(color);
     }
 
 }

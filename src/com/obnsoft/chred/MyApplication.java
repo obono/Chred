@@ -31,6 +31,7 @@ public class MyApplication extends Application {
 
     public int mChrIdx;
     public int mPalIdx;
+    public int mColIdx;
     public String mCurTab;
 
     public ChrData mChrData;
@@ -45,6 +46,7 @@ public class MyApplication extends Application {
 
     private static final String PREF_KEY_CHR = "chara";
     private static final String PREF_KEY_PAL = "palette";
+    private static final String PREF_KEY_COL = "color";
     private static final String PREF_KEY_TAB = "tab";
     private static final String PREF_KEY_HUNITS = "h_units";
     private static final String PREF_KEY_VUNITS = "v_units";
@@ -88,6 +90,7 @@ public class MyApplication extends Application {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
         mChrIdx = prefs.getInt(PREF_KEY_CHR, 0);
         mPalIdx = prefs.getInt(PREF_KEY_PAL, 2);
+        mColIdx = prefs.getInt(PREF_KEY_COL, 0);
         mCurTab = prefs.getString(PREF_KEY_TAB, null);
         mChrData.setTargetSize(prefs.getInt(PREF_KEY_HUNITS, 2), prefs.getInt(PREF_KEY_VUNITS, 2));
     }
@@ -97,6 +100,7 @@ public class MyApplication extends Application {
         SharedPreferences.Editor editor = prefs.edit();
         editor.putInt(PREF_KEY_CHR, mChrIdx);
         editor.putInt(PREF_KEY_PAL, mPalIdx);
+        editor.putInt(PREF_KEY_COL, mColIdx);
         editor.putString(PREF_KEY_TAB, mCurTab);
         editor.putInt(PREF_KEY_HUNITS, mChrData.getTargetSizeH());
         editor.putInt(PREF_KEY_VUNITS, mChrData.getTargetSizeV());

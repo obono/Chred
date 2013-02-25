@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="MyToggleMove" parent="android:Widget.Button.Toggle">
+        <item name="android:background">@drawable/btn_move</item>
+        <item name="android:textOn">@null</item>
+        <item name="android:textOff">@null</item>
+        <item name="android:checked">true</item>
+    </style>
+</resources>
