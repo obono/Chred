@@ -27,6 +27,7 @@
         android:layout_above="@id/btn_move"
         android:layout_alignLeft="@id/spin_palette"
         android:layout_alignRight="@id/btn_move"
+        android:layout_marginBottom="4dp"
         android:onClick="onClickDrawButton"
         />
     <com.obnsoft.view.MagnifyView

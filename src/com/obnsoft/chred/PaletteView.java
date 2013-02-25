@@ -1,3 +1,19 @@
+/*
+ * Copyright (C) 2013 OBN-soft
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.obnsoft.chred;
 
 import android.content.Context;
@@ -19,7 +35,7 @@ public class PaletteView extends LinearLayout {
         setOrientation(LinearLayout.VERTICAL);
         LayoutParams lp = new LayoutParams(
                 LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT, 1f);
-        int margin = Utils.dp2px(context, 4);
+        int margin = Utils.dp2px(context, 1);
         lp.setMargins(margin, margin, margin, margin);
         for (int i = 0; i < 4; i++) {
             LinearLayout ll = new LinearLayout(context);
@@ -46,12 +62,14 @@ public class PaletteView extends LinearLayout {
         }
     }
 
-    public ColorView setSelection(int colIdx) {
+    public ColorView getColorView(int colIdx) {
+        return (colIdx >= 0 && colIdx < mColViews.length) ? mColViews[colIdx] : null;
+    }
+
+    public void setSelection(int colIdx) {
         for (int i = 0; i < mColViews.length; i++) {
             mColViews[i].setSelected(i == colIdx);
         }
-        invalidate();
-        return mColViews[colIdx];
     }
 
 }

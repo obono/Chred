@@ -46,6 +46,7 @@ public class MagnifyView extends View implements OnScaleGestureListener {
     private int     mFocusUnitY;
 
     private Bitmap  mBitmap;
+    private Rect    mWorkRect = new Rect();
     private Rect    mBitmapRect = new Rect();
     private Rect    mDrawRect = new Rect();
     private Paint   mGridPaint = new Paint();
@@ -84,14 +85,14 @@ public class MagnifyView extends View implements OnScaleGestureListener {
         }
         canvas.drawBitmap(mBitmap, mBitmapRect, mDrawRect, null);
         if (mGridPaint.getColor() != Color.TRANSPARENT) {
-            Rect clip = canvas.getClipBounds();
-            if (clip.isEmpty()) {
-                clip.set(0, 0, getWidth(), getHeight());
+            canvas.getClipBounds(mWorkRect);
+            if (mWorkRect.isEmpty()) {
+                mWorkRect.set(0, 0, getWidth(), getHeight());
             }
-            int cl = Math.max(clip.left, mDrawRect.left);
-            int cr = Math.min(clip.right, mDrawRect.right + 1);
-            int ct = Math.max(clip.top, mDrawRect.top);
-            int cb = Math.min(clip.bottom, mDrawRect.bottom + 1);
+            int cl = Math.max(mWorkRect.left, mDrawRect.left);
+            int cr = Math.min(mWorkRect.right, mDrawRect.right + 1);
+            int ct = Math.max(mWorkRect.top, mDrawRect.top);
+            int cb = Math.min(mWorkRect.bottom, mDrawRect.bottom + 1);
             if (mDotted) {
                 for (int x = mDrawRect.left; x <= cr; x += mUnit) {
                     for (int y = mDrawRect.top; y <= cb; y += mUnit) {
@@ -196,13 +197,10 @@ public class MagnifyView extends View implements OnScaleGestureListener {
             mFocusY = (int) detector.getFocusY();
             mFocusUnitX = ((int) mFocusX - mDrawRect.left) / mUnit;
             mFocusUnitY = ((int) mFocusY - mDrawRect.top) / mUnit;
-            if (mFocusUnitX >= 0 && mFocusUnitX < mBitmapRect.right &&
-                    mFocusUnitY >= 0 && mFocusUnitY < mBitmapRect.bottom) {
-                mIsScaling = true;
-                mScalingUnit = mUnit;
-                mScalingSpan = detector.getCurrentSpan();
-                return true;
-            }
+            mIsScaling = true;
+            mScalingUnit = mUnit;
+            mScalingSpan = detector.getCurrentSpan();
+            return true;
         }
         return false;
     }

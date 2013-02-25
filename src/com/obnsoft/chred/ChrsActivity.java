@@ -111,6 +111,7 @@ public class ChrsActivity extends Activity implements OnItemSelectedListener {
                 cv = new ChrView(context);
                 tv = new TextView(context);
                 tv.setGravity(Gravity.CENTER);
+                tv.setTextAppearance(context, android.R.style.TextAppearance_Medium);
                 rl.addView(cv);
                 rl.addView(tv, mGridItemTextLayout);
                 convertView = rl;
@@ -124,7 +125,7 @@ public class ChrsActivity extends Activity implements OnItemSelectedListener {
             cv.setPosition(pos);
             tv.setText(String.valueOf(idx));
             convertView.setLayoutParams(mGridItemLayout);
-            convertView.setBackgroundColor((idx == mApp.mChrIdx) ? 0x80FFFF00 : Color.TRANSPARENT);
+            convertView.setBackgroundColor((idx == mApp.mChrIdx) ? 0x99FFFF00 : Color.TRANSPARENT);
             return convertView;
         }
     }

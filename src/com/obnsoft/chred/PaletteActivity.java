@@ -50,7 +50,6 @@ public class PaletteActivity extends Activity implements OnItemSelectedListener,
 
         mPalView = (PaletteView) findViewById(R.id.palview);
         mPalView.setPalette(mApp.mColData, mApp.mPalIdx);
-        mColView = mPalView.setSelection(mApp.mColIdx);
         mPalView.setOnClickListener(this);
 
         mPalSpinner = (Spinner) findViewById(R.id.spin_palette);
@@ -68,6 +67,8 @@ public class PaletteActivity extends Activity implements OnItemSelectedListener,
         } else {
             mPalView.setPalette(mApp.mColData, mApp.mPalIdx);
         }
+        mPalView.setSelection(mApp.mColIdx);
+        mColView = mPalView.getColorView(mApp.mColIdx);
         mColPicker.setColor(mApp.mColData.getColor(mApp.mPalIdx, mApp.mColIdx));
         super.onResume();
     }

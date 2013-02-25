@@ -26,6 +26,7 @@
         android:layout_height="wrap_content"
         android:layout_alignTop="@id/btn_move"
         android:layout_toLeftOf="@id/btn_move"
+        android:layout_margin="4dp"
         android:onClick="onClickDrawButton"
         />
     <com.obnsoft.view.MagnifyView

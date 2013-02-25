@@ -3,13 +3,13 @@
     <item android:state_checked="true">
         <layer-list>
             <item android:drawable="@android:drawable/btn_default_small" />
-            <item android:drawable="@android:drawable/ic_menu_crop" />
+            <item android:drawable="@drawable/ic_magnify" />
         </layer-list>
     </item>
     <item android:state_checked="false">
         <layer-list>
             <item android:drawable="@android:drawable/btn_default_small" />
-            <item android:drawable="@android:drawable/ic_menu_edit" />
+            <item android:drawable="@drawable/ic_pencil" />
         </layer-list>
         
     </item>

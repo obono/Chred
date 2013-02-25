@@ -59,7 +59,6 @@ public class EditActivity extends Activity
 
         mMoveBtn = (ToggleButton) findViewById(R.id.btn_move);
         mColView = (ColorView) findViewById(R.id.btn_draw);
-        mColView.setSelected(true);
     }
 
     @Override
@@ -121,7 +120,6 @@ public class EditActivity extends Activity
         palView.setPalette(mApp.mColData, mApp.mPalIdx);
         palView.setSelection(mApp.mColIdx);
         final AlertDialog dlg = new AlertDialog.Builder(this)
-                .setTitle(R.string.color)
                 .setView(palView)
                 .setNegativeButton(android.R.string.cancel, null)
                 .create();
