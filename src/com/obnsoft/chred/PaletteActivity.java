@@ -17,8 +17,10 @@
 package com.obnsoft.chred;
 
 import com.obnsoft.view.ColorPickerInterface;
+import com.obnsoft.view.MagnifyView;
 
 import android.app.Activity;
+import android.graphics.Bitmap;
 import android.graphics.Paint;
 import android.os.Bundle;
 import android.view.View;
@@ -30,6 +32,7 @@ import android.widget.Spinner;
 public class PaletteActivity extends Activity implements OnItemSelectedListener,
         ColorPickerInterface.OnColorChangedListener, OnClickListener {
 
+    private Bitmap mBitmap;
     private Paint mPaint = new Paint();
 
     private MyApplication mApp;
@@ -37,6 +40,7 @@ public class PaletteActivity extends Activity implements OnItemSelectedListener,
     private ColorView mColView;
     private Spinner mPalSpinner;
     private ColorPickerInterface mColPicker;
+    private MagnifyView mPreView;
 
     /*-----------------------------------------------------------------------*/
 
@@ -58,19 +62,34 @@ public class PaletteActivity extends Activity implements OnItemSelectedListener,
 
         mColPicker = (ColorPickerInterface) findViewById(R.id.colpicker_hsv);
         mColPicker.setListener(this);
+
+        mPreView = (MagnifyView) findViewById(R.id.view_preview);
     }
 
     @Override
     protected void onResume() {
+        ChrData chrData = mApp.mChrData;
+        mBitmap = Bitmap.createBitmap(chrData.getTargetSizeH() * ChrData.UNIT_SIZE,
+                chrData.getTargetSizeV() * ChrData.UNIT_SIZE, Bitmap.Config.ARGB_8888);
+        mPreView.setBitmap(mBitmap);
         if (mPalSpinner.getSelectedItemPosition() != mApp.mPalIdx) {
             mPalSpinner.setSelection(mApp.mPalIdx);
         } else {
             mPalView.setPalette(mApp.mColData, mApp.mPalIdx);
+            updatePreview();
         }
         mPalView.setSelection(mApp.mColIdx);
         mColView = mPalView.getColorView(mApp.mColIdx);
         mColPicker.setColor(mApp.mColData.getColor(mApp.mPalIdx, mApp.mColIdx));
         super.onResume();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        mPreView.setBitmap(null);
+        mBitmap.recycle();
+        mBitmap = null;
     }
 
     /*-----------------------------------------------------------------------*/
@@ -89,6 +108,7 @@ public class PaletteActivity extends Activity implements OnItemSelectedListener,
         if (spinner == mPalSpinner) {
             mApp.mPalIdx = spinner.getSelectedItemPosition();
             mPalView.setPalette(mApp.mColData, mApp.mPalIdx);
+            updatePreview();
         }
     }
     @Override
@@ -102,6 +122,11 @@ public class PaletteActivity extends Activity implements OnItemSelectedListener,
         mApp.mColData.setColor(pal, mApp.mColIdx, color);
         color = mApp.mColData.getColor(pal, mApp.mColIdx);
         mColView.setColor(color);
+        updatePreview();
     }
 
+    private void updatePreview() {
+        mApp.mChrData.drawTarget(mBitmap, mApp.mChrIdx, mApp.mPalIdx);
+        mPreView.invalidate();
+    }
 }

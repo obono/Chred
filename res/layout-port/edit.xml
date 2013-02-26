@@ -11,6 +11,14 @@
         android:layout_alignParentLeft="true"
         android:prompt="@string/palette"
         />
+    <com.obnsoft.view.MagnifyView
+        android:id="@+id/view_preview"
+        android:layout_width="66dp"
+        android:layout_height="0px"
+        android:layout_alignTop="@id/spin_palette"
+        android:layout_alignParentBottom="true"
+        android:layout_toRightOf="@id/spin_palette"
+        />
     <ToggleButton
         android:id="@+id/btn_move"
         android:layout_width="wrap_content"

@@ -37,7 +37,8 @@ public class EditActivity extends Activity
     private Bitmap mBitmap;
 
     private MyApplication mApp;
-    private MagnifyView mMgView;
+    private MagnifyView mMagView;
+    private MagnifyView mPreView;
     private Spinner mPalSpinner;
     private ToggleButton mMoveBtn;
     private ColorView mColView;
@@ -50,8 +51,13 @@ public class EditActivity extends Activity
         setContentView(R.layout.edit);
 
         mApp = (MyApplication) getApplication();
-        mMgView = (MagnifyView) findViewById(R.id.view_edit);
-        mMgView.setGridColor(Color.GRAY, false);
+        mMagView = (MagnifyView) findViewById(R.id.view_edit);
+        int unit = Utils.dp2px(this, 4);
+        mMagView.setScrollable(true);
+        mMagView.setScaleRange(unit, unit * 16);
+        mMagView.setGridColor(Color.GRAY, false);
+
+        mPreView = (MagnifyView) findViewById(R.id.view_preview);
 
         mPalSpinner = (Spinner) findViewById(R.id.spin_palette);
         mPalSpinner.setAdapter(mApp.mPalAdapter);
@@ -68,7 +74,8 @@ public class EditActivity extends Activity
         mBitmap = Bitmap.createBitmap(chrData.getTargetSizeH() * ChrData.UNIT_SIZE,
                 chrData.getTargetSizeV() * ChrData.UNIT_SIZE, Bitmap.Config.ARGB_8888);
         chrData.drawTarget(mBitmap, mApp.mChrIdx, mApp.mPalIdx);
-        mMgView.setBitmap(mBitmap);
+        mMagView.setBitmap(mBitmap);
+        mPreView.setBitmap(mBitmap);
         setButtonsStatus();
 
         super.onResume();
@@ -77,7 +84,8 @@ public class EditActivity extends Activity
     @Override
     protected void onPause() {
         super.onPause();
-        mMgView.setBitmap(null);
+        mMagView.setBitmap(null);
+        mPreView.setBitmap(null);
         mBitmap.recycle();
         mBitmap = null;
     }
@@ -89,7 +97,8 @@ public class EditActivity extends Activity
         if (x >= 0 && y >= 0 && x < mBitmap.getWidth() && y < mBitmap.getHeight()) {
             mApp.mChrData.setTargetDot(mApp.mChrIdx, x, y, mApp.mColIdx);
             mBitmap.setPixel(x, y, mApp.mColData.getColor(mApp.mPalIdx, mApp.mColIdx));
-            mMgView.invalidateUnit(x, y);
+            mMagView.invalidateUnit(x, y);
+            mPreView.invalidateUnit(x, y);
         }
         return true;
     }
@@ -100,7 +109,8 @@ public class EditActivity extends Activity
         if (spinner == mPalSpinner) {
             mApp.mPalIdx = spinner.getSelectedItemPosition();
             mApp.mChrData.drawTarget(mBitmap, mApp.mChrIdx, mApp.mPalIdx);
-            mMgView.invalidate();
+            mMagView.invalidate();
+            mPreView.invalidate();
         }
     }
 
@@ -139,7 +149,7 @@ public class EditActivity extends Activity
     /*-----------------------------------------------------------------------*/
 
     private void setButtonsStatus() {
-        mMgView.setEventHandler(mMoveBtn.isChecked() ? null : this);
+        mMagView.setEventHandler(mMoveBtn.isChecked() ? null : this);
         mColView.setIndex(mApp.mColIdx);
         mColView.setColor(mApp.mColData.getColor(mApp.mPalIdx, mApp.mColIdx));
     }
