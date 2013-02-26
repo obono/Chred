@@ -52,7 +52,8 @@ public class MyFilePickerActivity extends FilePickerActivity {
                 setTitle(id);
             }
         }
-        setResourceId(0, 0, 0, R.string.msg_createfile); // TODO
+        setResourceId(R.drawable.ic_folder, R.drawable.ic_file,
+                R.drawable.ic_newfile, R.string.msg_createfile);
     }
 
     @Override
