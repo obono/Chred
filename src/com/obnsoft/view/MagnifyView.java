@@ -47,7 +47,7 @@ public class MagnifyView extends View implements OnScaleGestureListener {
 
     private Bitmap  mBitmap;
     private Rect    mWorkRect = new Rect();
-    private Rect    mBitmapRect = new Rect();
+    private Rect    mSrcRect = new Rect();
     private Rect    mDrawRect = new Rect();
     private Paint   mGridPaint = new Paint();
 
@@ -83,34 +83,41 @@ public class MagnifyView extends View implements OnScaleGestureListener {
         if (mBitmap == null) {
             return;
         }
-        canvas.drawBitmap(mBitmap, mBitmapRect, mDrawRect, null);
+
+        canvas.getClipBounds(mWorkRect);
+        if (mWorkRect.isEmpty()) {
+            mWorkRect.set(0, 0, getWidth(), getHeight());
+        }
+        int cl = Math.max(mWorkRect.left, mDrawRect.left);
+        int cr = Math.min(mWorkRect.right, mDrawRect.right);
+        int ct = Math.max(mWorkRect.top, mDrawRect.top);
+        int cb = Math.min(mWorkRect.bottom, mDrawRect.bottom);
+        cl -= (cl - mDrawRect.left) % mUnit;
+        ct -= (ct - mDrawRect.top) % mUnit;
+
         if (mGridPaint.getColor() != Color.TRANSPARENT) {
-            canvas.getClipBounds(mWorkRect);
-            if (mWorkRect.isEmpty()) {
-                mWorkRect.set(0, 0, getWidth(), getHeight());
+            int x1 = cl, x2 = cl;
+            int y1 = ct, y2 = ct;
+            while (x1 < cr || y1 < cb) {
+                if (x1 < cr) x1 += mUnit; else y1 += mUnit;
+                if (y2 < cb) y2 += mUnit; else x2 += mUnit;
+                canvas.drawLine(x1, y1, x2, y2, mGridPaint);
             }
-            int cl = Math.max(mWorkRect.left, mDrawRect.left);
-            int cr = Math.min(mWorkRect.right, mDrawRect.right + 1);
-            int ct = Math.max(mWorkRect.top, mDrawRect.top);
-            int cb = Math.min(mWorkRect.bottom, mDrawRect.bottom + 1);
+        }
+        canvas.drawBitmap(mBitmap, mSrcRect, mDrawRect, null);
+        if (mGridPaint.getColor() != Color.TRANSPARENT) {
             if (mDotted) {
-                for (int x = mDrawRect.left; x <= cr; x += mUnit) {
-                    for (int y = mDrawRect.top; y <= cb; y += mUnit) {
-                        if (x >= cl && y >= ct) {
-                            canvas.drawPoint(x, y, mGridPaint);
-                        }
+                for (int x = cl; x <= cr; x += mUnit) {
+                    for (int y = ct; y <= cb; y += mUnit) {
+                        canvas.drawPoint(x, y, mGridPaint);
                     }
                 }
             } else {
-                for (int x = mDrawRect.left; x <= cr; x += mUnit) {
-                    if (x >= cl) {
-                        canvas.drawLine(x, ct, x, cb, mGridPaint);
-                    }
+                for (int x = cl; x <= cr; x += mUnit) {
+                    canvas.drawLine(x, ct, x, cb, mGridPaint);
                 }
-                for (int y = mDrawRect.top; y <= cb; y += mUnit) {
-                    if (y >= ct) {
-                        canvas.drawLine(cl, y, cr, y, mGridPaint);
-                    }
+                for (int y = ct; y <= cb; y += mUnit) {
+                    canvas.drawLine(cl, y, cr, y, mGridPaint);
                 }
             }
         }
@@ -181,7 +188,7 @@ public class MagnifyView extends View implements OnScaleGestureListener {
                 int dx = (int) (mFocusX - (mFocusUnitX + .5f) * unit);
                 int dy = (int) (mFocusY - (mFocusUnitY + .5f) * unit);
                 mDrawRect.set(dx, dy,
-                        dx + mBitmapRect.right * mUnit, dy + mBitmapRect.bottom * mUnit);
+                        dx + mSrcRect.width() * mUnit, dy + mSrcRect.height() * mUnit);
                 adjustDrawRect();
                 invalidate();
             }
@@ -213,7 +220,13 @@ public class MagnifyView extends View implements OnScaleGestureListener {
     /*-----------------------------------------------------------------------*/
 
     public void setBitmap(Bitmap bmp) {
+        setBitmap(bmp, 0, 0, (bmp == null) ? 0 : bmp.getWidth(),
+                (bmp == null) ? 0 : bmp.getHeight());
+    }
+
+    public void setBitmap(Bitmap bmp, int l, int t, int r, int b) {
         mBitmap = bmp;
+        mSrcRect.set(l, t, r, b);
         calcCoords();
         invalidate();
     }
@@ -250,13 +263,11 @@ public class MagnifyView extends View implements OnScaleGestureListener {
 
     private void calcCoords() {
         if (mBitmap == null) {
-            mBitmapRect.set(0, 0, 0, 0);
             mDrawRect.set(0, 0, 0, 0);
             return;
         }
-        int sw = mBitmap.getWidth();
-        int sh = mBitmap.getHeight();
-        mBitmapRect.set(0, 0, sw, sh);
+        int sw = mSrcRect.width();
+        int sh = mSrcRect.height();
         int dw = getWidth();
         int dh = getHeight();
         if (sw == 0 || sh == 0 || dw == 0 || dh == 0) {

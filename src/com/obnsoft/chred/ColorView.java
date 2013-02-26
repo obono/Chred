@@ -21,7 +21,6 @@ import com.obnsoft.view.HSVColorPickerView;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
-import android.graphics.Paint;
 import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
 import android.util.AttributeSet;
@@ -43,7 +42,7 @@ public class ColorView extends TextView {
         setClickable(true);
         mStroke = Utils.dp2px(context, 2);
         mBackGround = new GradientDrawable();
-        mBackGround.setCornerRadius(mStroke * 4);
+        mBackGround.setCornerRadius(mStroke * 2);
         setBackgroundDrawable(mBackGround);
     }
 
@@ -55,12 +54,10 @@ public class ColorView extends TextView {
             mBackGround.setStroke(mStroke, isPressed() ? Color.LTGRAY : Color.GRAY,
                     mStroke, mStroke);
         }
-        super.draw(canvas);
         if (mIdx == 0) {
-            Paint p = getPaint();
-            p.setStrokeWidth(mStroke);
-            canvas.drawLine(getWidth() - 1, 0, 0, getHeight() - 1, p);
+            canvas.drawLine(getWidth() - 1, 0, 0, getHeight() - 1, getPaint());
         }
+        super.draw(canvas);
     }
 
     @Override
