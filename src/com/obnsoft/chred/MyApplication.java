@@ -42,7 +42,7 @@ public class MyApplication extends Application {
 
     private static final String FNAME_CHR = "chara.ptc";
     private static final String FNAME_COL = "palette.ptc";
-    private static final String PTC_KEYWORD = "android";
+    private static final String PTC_KEYWORD = "ANDROID";
 
     private static final String PREF_KEY_CHR = "chara";
     private static final String PREF_KEY_PAL = "palette";

@@ -6,4 +6,16 @@
     <string name="edit">Edit</string>
     <string name="palette">Palette</string>
     <string name="size">Size</string>
+    <string name="menu_import">Import</string>
+    <string name="menu_export">Export</string>
+    <string name="menu_version">Version info</string>
+    <string name="msg_newfilename">Enter the file name</string>
+    <string name="msg_topdirectory">(Top directory)</string>
+    <string name="msg_nofiles">No files...</string>
+    <string name="msg_createfile">(New file)</string>
+    <string name="msg_newdata">The current data will be lost. Are you sure?</string>
+    <string name="msg_overwrite">Are you sure to overwrite?</string>
+    <string name="msg_success">The process was successfully completed.</string>
+    <string name="msg_error">An error occurred during process.</string>
+    <string name="msg_invalid">You entered an invalid parameter.</string>
 </resources>

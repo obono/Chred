@@ -21,7 +21,6 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
-import android.graphics.Paint.Style;
 import android.graphics.Rect;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
@@ -76,7 +75,7 @@ public class MagnifyView extends View implements OnScaleGestureListener {
     public MagnifyView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
         mPaint.setAntiAlias(false);
-        mPaint.setStyle(Style.STROKE);
+        mPaint.setStyle(Paint.Style.STROKE);
         mPaint.setStrokeWidth(1);
         mGestureDetector = new ScaleGestureDetector(context, this);
     }
