@@ -3,47 +3,29 @@
     <item
         android:id="@+id/menu_import"
         android:title="@string/menu_import"
-        android:icon="@android:drawable/ic_menu_set_as"
+        android:icon="@drawable/ic_import"
         >
         <menu>
             <item android:id="@+id/menu_import_file" android:title="@string/menu_import_file" />
             <!--item android:id="@+id/menu_import_gallery" android:title="@string/menu_import_gallery" /-->
             <!--item android:id="@+id/menu_import_camera" android:title="@string/menu_import_camera" /-->
-            <item android:id="@+id/menu_import_preset" android:title="@string/menu_import_preset">
-                <menu>
-                    <item android:id="@+id/menu_import_color" android:title="@string/menu_import_color" />
-                    <item android:id="@+id/menu_import_bgu0" android:title="BGU0" />
-                    <item android:id="@+id/menu_import_bgu1" android:title="BGU1" />
-                    <item android:id="@+id/menu_import_bgu2" android:title="BGU2" />
-                    <item android:id="@+id/menu_import_bgu3" android:title="BGU3" />
-                    <item android:id="@+id/menu_import_spu0" android:title="SPU0" />
-                    <item android:id="@+id/menu_import_spu1" android:title="SPU1" />
-                    <item android:id="@+id/menu_import_spu2" android:title="SPU2" />
-                    <item android:id="@+id/menu_import_spu3" android:title="SPU3" />
-                    <item android:id="@+id/menu_import_spu4" android:title="SPU4" />
-                    <item android:id="@+id/menu_import_spu5" android:title="SPU5" />
-                    <item android:id="@+id/menu_import_spu6" android:title="SPU6" />
-                    <item android:id="@+id/menu_import_spu7" android:title="SPU7" />
-                    <item android:id="@+id/menu_import_bgf0" android:title="BGF0" />
-                </menu>
-            </item>
+            <item android:id="@+id/menu_import_preset" android:title="@string/menu_import_preset" />
         </menu>
     </item>
     <item
         android:id="@+id/menu_export"
         android:title="@string/menu_export"
-        android:icon="@android:drawable/ic_menu_save"
+        android:icon="@drawable/ic_export"
         >
         <menu>
             <item android:id="@+id/menu_export_chr" android:title="@string/menu_export_chr" />
             <item android:id="@+id/menu_export_col" android:title="@string/menu_export_col" />
-            <item android:id="@+id/menu_export_both" android:title="@string/menu_export_both" />
             <!--item android:id="@+id/menu_export_qr" android:title="@string/menu_export_qr" /-->
         </menu>
     </item>
     <item
         android:id="@+id/menu_version"
         android:title="@string/menu_version"
-        android:icon="@android:drawable/ic_menu_info_details"
+        android:icon="@drawable/ic_version"
         />
 </menu>

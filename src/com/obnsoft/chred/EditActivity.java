@@ -29,6 +29,7 @@ import android.view.View.OnClickListener;
 import android.widget.AdapterView;
 import android.widget.Spinner;
 import android.widget.AdapterView.OnItemSelectedListener;
+import android.widget.TextView;
 import android.widget.ToggleButton;
 
 public class EditActivity extends Activity
@@ -39,6 +40,7 @@ public class EditActivity extends Activity
     private MyApplication mApp;
     private MagnifyView mMagView;
     private MagnifyView mPreView;
+    private TextView mIdxText;
     private Spinner mPalSpinner;
     private ToggleButton mMoveBtn;
     private ColorView mColView;
@@ -58,7 +60,7 @@ public class EditActivity extends Activity
         mMagView.setGridColor(Color.GRAY, false);
 
         mPreView = (MagnifyView) findViewById(R.id.view_preview);
-
+        mIdxText = (TextView) findViewById(R.id.text_index);
         mPalSpinner = (Spinner) findViewById(R.id.spin_palette);
         mPalSpinner.setAdapter(mApp.mPalAdapter);
         mPalSpinner.setOnItemSelectedListener(this);
@@ -71,11 +73,14 @@ public class EditActivity extends Activity
     protected void onResume() {
         mPalSpinner.setSelection(mApp.mPalIdx);
         ChrData chrData = mApp.mChrData;
-        mBitmap = Bitmap.createBitmap(chrData.getTargetSizeH() * ChrData.UNIT_SIZE,
-                chrData.getTargetSizeV() * ChrData.UNIT_SIZE, Bitmap.Config.ARGB_8888);
+        int hUnits = chrData.getTargetSizeH();
+        int vUnits = chrData.getTargetSizeV();
+        mBitmap = Bitmap.createBitmap(hUnits * ChrData.UNIT_SIZE,
+                vUnits * ChrData.UNIT_SIZE, Bitmap.Config.ARGB_8888);
         chrData.drawTarget(mBitmap, mApp.mChrIdx, mApp.mPalIdx);
         mMagView.setBitmap(mBitmap);
         mPreView.setBitmap(mBitmap);
+        mIdxText.setText(String.format("%d\n(%dx%d)", mApp.mChrIdx, vUnits, hUnits));
         setButtonsStatus();
 
         super.onResume();

@@ -25,7 +25,9 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 
+import android.app.AlertDialog;
 import android.app.TabActivity;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
@@ -45,14 +47,17 @@ public class MainActivity extends TabActivity {
     private static final String TABTAG_EDIT = "edit";
     private static final String TABTAG_PALETTE = "palette";
 
+    private static final String[] PRESET_FNAMES = {
+        "Default palette", "SPU0", "SPU1", "SPU2", "SPU3", "BGF0",
+    };
+
     private static final int REQUEST_ID_IMPORT_FILE = 1;
     //private static final int REQUEST_ID_IMPORT_GALLERY = 2;
     //private static final int REQUEST_ID_IMPORT_CAMERA = 3;
 
     private static final int REQUEST_ID_EXPORT_CHR = 11;
     private static final int REQUEST_ID_EXPORT_COL = 12;
-    private static final int REQUEST_ID_EXPORT_BOTH = 13;
-    //private static final int REQUEST_ID_EXPORT_QR = 14;
+    //private static final int REQUEST_ID_EXPORT_QR = 13;
 
     private MyApplication mApp;
 
@@ -103,27 +108,11 @@ public class MainActivity extends TabActivity {
         case R.id.menu_import_file:
             requestFileToImport();
             return true;
-        case R.id.menu_import_color:
-            executeImportFromPresetCol();
+        case R.id.menu_import_preset:
+            selectPresetToImport();
             return true;
-        case R.id.menu_import_bgu0:
-        case R.id.menu_import_bgu1:
-        case R.id.menu_import_bgu2:
-        case R.id.menu_import_bgu3:
-        case R.id.menu_import_spu0:
-        case R.id.menu_import_spu1:
-        case R.id.menu_import_spu2:
-        case R.id.menu_import_spu3:
-        case R.id.menu_import_spu4:
-        case R.id.menu_import_spu5:
-        case R.id.menu_import_spu6:
-        case R.id.menu_import_spu7:
-        case R.id.menu_import_bgf0:
-            executeImportFromPresetChr(item.getTitle().toString());
-            break;
         case R.id.menu_export_chr:
         case R.id.menu_export_col:
-        case R.id.menu_export_both:
             requestFileToExport(menuId);
             return true;
         case R.id.menu_version:
@@ -144,7 +133,6 @@ public class MainActivity extends TabActivity {
             break;
         case REQUEST_ID_EXPORT_CHR:
         case REQUEST_ID_EXPORT_COL:
-        case REQUEST_ID_EXPORT_BOTH:
             if (resultCode == RESULT_OK) {
                 executeExportToFile(requestCode,
                         data.getStringExtra(MyFilePickerActivity.INTENT_EXTRA_SELECTPATH));
@@ -189,6 +177,20 @@ public class MainActivity extends TabActivity {
         Utils.showToast(this, msgId);
     }
 
+    private void selectPresetToImport() {
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.menu_import_preset)
+                .setItems(PRESET_FNAMES, new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        if (which == 0) {
+                            executeImportFromPresetCol();
+                        } else {
+                            executeImportFromPresetChr(PRESET_FNAMES[which]);
+                        }
+                    }
+                }).show();
+    }
+
     private void executeImportFromPresetCol() {
         int msgId = R.string.msg_error;
         try {
@@ -223,21 +225,21 @@ public class MainActivity extends TabActivity {
     private void requestFileToExport(int menuId) {
         int titleId;
         String path;
+        int requestCode;
         if (menuId == R.id.menu_export_col) {
             titleId = R.string.title_export_col;
             path = MyFilePickerActivity.DEFAULT_DIR_COL;
+            requestCode = REQUEST_ID_EXPORT_COL;
         } else {
             titleId = R.string.title_export_chr;
             path = MyFilePickerActivity.DEFAULT_DIR_CHR;
+            requestCode = REQUEST_ID_EXPORT_CHR;
         }
         Intent intent = new Intent(this, MyFilePickerActivity.class);
         intent.putExtra(MyFilePickerActivity.INTENT_EXTRA_TITLEID, titleId);
         intent.putExtra(MyFilePickerActivity.INTENT_EXTRA_DIRECTORY, path);
         intent.putExtra(MyFilePickerActivity.INTENT_EXTRA_EXTENSION, MyApplication.FNAMEEXT_PTC);
         intent.putExtra(MyFilePickerActivity.INTENT_EXTRA_WRITEMODE, true);
-        int requestCode = REQUEST_ID_EXPORT_BOTH;
-        if (menuId == R.id.menu_export_chr) requestCode = REQUEST_ID_EXPORT_CHR;
-        if (menuId == R.id.menu_export_col) requestCode = REQUEST_ID_EXPORT_COL;
         startActivityForResult(intent, requestCode);
     }
 
@@ -262,9 +264,6 @@ public class MainActivity extends TabActivity {
             e.printStackTrace();
         }
         Utils.showToast(this, msgId);
-        if (requestCode == REQUEST_ID_EXPORT_BOTH) {
-            requestFileToExport(R.id.menu_export_col);
-        }
     }
 
     private void showVersion() {
@@ -289,8 +288,7 @@ public class MainActivity extends TabActivity {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        Utils.showCustomDialog(this, android.R.drawable.ic_dialog_info,
-                R.string.menu_version, aboutView, null);
+        Utils.showCustomDialog(this, R.drawable.ic_version, R.string.menu_version, aboutView, null);
     }
 
     private void refreshActivity() {

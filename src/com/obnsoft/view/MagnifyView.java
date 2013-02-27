@@ -105,7 +105,7 @@ public class MagnifyView extends View implements OnScaleGestureListener {
             while (x1 < cr || y1 < cb) {
                 if (x1 < cr) x1 += mUnit; else y1 += mUnit;
                 if (y2 < cb) y2 += mUnit; else x2 += mUnit;
-                canvas.drawLine(x1, y1, x2, y2, mPaint);
+                canvas.drawLine(x1 + 1, y1, x2, y2 + 1, mPaint);
             }
         }
         canvas.drawBitmap(mBitmap, mSrcRect, mDrawRect, null);
