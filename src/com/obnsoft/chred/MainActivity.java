@@ -26,7 +26,6 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 
 import android.app.TabActivity;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
@@ -41,6 +40,10 @@ import android.widget.TabHost;
 import android.widget.TextView;
 
 public class MainActivity extends TabActivity {
+
+    private static final String TABTAG_TARGET = "target";
+    private static final String TABTAG_EDIT = "edit";
+    private static final String TABTAG_PALETTE = "palette";
 
     private static final int REQUEST_ID_IMPORT_FILE = 1;
     //private static final int REQUEST_ID_IMPORT_GALLERY = 2;
@@ -60,32 +63,21 @@ public class MainActivity extends TabActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
         mApp = (MyApplication) getApplication();
-
-        TabHost tabHost = getTabHost();
-        View view;
-        Intent intent;
-
-        intent = new Intent().setClass(this, ChrsActivity.class);
-        view = View.inflate(this, R.layout.tab, null);
-        ((TextView) view.findViewById(R.id.tab_text)).setText(R.string.target);
-        ((ImageView) view.findViewById(R.id.tab_icon)).setImageResource(R.drawable.ic_tab_chr);
-        tabHost.addTab(tabHost.newTabSpec("target").setIndicator(view).setContent(intent));
-
-        intent = new Intent().setClass(this, EditActivity.class);
-        view = View.inflate(this, R.layout.tab, null);
-        ((TextView) view.findViewById(R.id.tab_text)).setText(R.string.edit);
-        ((ImageView) view.findViewById(R.id.tab_icon)).setImageResource(R.drawable.ic_tab_edit);
-        tabHost.addTab(tabHost.newTabSpec("edit").setIndicator(view).setContent(intent));
-
-        intent = new Intent().setClass(this, PaletteActivity.class);
-        view = View.inflate(this, R.layout.tab, null);
-        ((TextView) view.findViewById(R.id.tab_text)).setText(R.string.palette);
-        ((ImageView) view.findViewById(R.id.tab_icon)).setImageResource(R.drawable.ic_tab_palette);
-        tabHost.addTab(tabHost.newTabSpec("palette").setIndicator(view).setContent(intent));
-
+        myAddTab(TABTAG_TARGET, R.string.target, R.drawable.ic_tab_chr,    ChrsActivity.class);
+        myAddTab(TABTAG_EDIT,   R.string.edit,   R.drawable.ic_tab_edit,   EditActivity.class);
+        myAddTab(TABTAG_PALETTE,R.string.palette,R.drawable.ic_tab_palette,PaletteActivity.class);
         if (mApp.mCurTab != null) {
-            tabHost.setCurrentTabByTag(mApp.mCurTab);
+            getTabHost().setCurrentTabByTag(mApp.mCurTab);
         }
+    }
+
+    private void myAddTab(String tag, int mesId, int iconId, Class<?> cls) {
+        TabHost tabHost = getTabHost();
+        View view = View.inflate(this, R.layout.tab, null);
+        Intent intent = new Intent().setClass(this, cls);;
+        ((TextView) view.findViewById(R.id.tab_text)).setText(mesId);
+        ((ImageView) view.findViewById(R.id.tab_icon)).setImageResource(iconId);
+        tabHost.addTab(tabHost.newTabSpec(tag).setIndicator(view).setContent(intent));
     }
 
     @Override
@@ -169,15 +161,7 @@ public class MainActivity extends TabActivity {
         intent.putExtra(MyFilePickerActivity.INTENT_EXTRA_DIRECTORY,
                 MyFilePickerActivity.DEFAULT_DIR);
         intent.putExtra(MyFilePickerActivity.INTENT_EXTRA_EXTENSION, MyApplication.FNAMEEXT_PTC);
-        DialogInterface.OnClickListener listener = new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int whichButton) {
-                startActivityForResult(intent, REQUEST_ID_IMPORT_FILE);
-            }
-        };
-        Utils.showYesNoDialog(
-                this, android.R.drawable.ic_dialog_alert,
-                R.string.menu_import, R.string.msg_newdata, listener);
+        startActivityForResult(intent, REQUEST_ID_IMPORT_FILE);
     }
 
     private void executeImportFromFile(String path) {
@@ -188,10 +172,12 @@ public class MainActivity extends TabActivity {
             in.close();
             if (ret) {
                 msgId = R.string.msg_loadcol;
+                refreshActivity();
             } else {
                 in = new FileInputStream(path);
                 if (mApp.mChrData.loadFromStream(in)) {
                     msgId = R.string.msg_loadchr;
+                    refreshActivity();
                 }
                 in.close();
             }
@@ -208,8 +194,8 @@ public class MainActivity extends TabActivity {
         try {
             InputStream in = getResources().getAssets().open(MyApplication.FNAME_DEFAULT_COL);
             if (mApp.mColData.loadFromStream(in)) {
-                getTabWidget().invalidate();
                 msgId = R.string.msg_loadcol;
+                refreshActivity();
             }
             in.close();
         } catch (IOException e) {
@@ -224,8 +210,8 @@ public class MainActivity extends TabActivity {
             InputStream in = getResources().getAssets().open(
                     name.toLowerCase().concat(MyApplication.FNAMEEXT_PTC));
             if (mApp.mChrData.loadFromStream(in)) {
-                getTabWidget().invalidate();
                 msgId = R.string.msg_loadchr;
+                refreshActivity();
             }
             in.close();
         } catch (IOException e) {
@@ -305,6 +291,17 @@ public class MainActivity extends TabActivity {
         }
         Utils.showCustomDialog(this, android.R.drawable.ic_dialog_info,
                 R.string.menu_version, aboutView, null);
+    }
+
+    private void refreshActivity() {
+        TabHost tabHost = getTabHost();
+        if (!TABTAG_TARGET.equals(tabHost.getCurrentTabTag())) {
+            tabHost.setCurrentTabByTag(TABTAG_TARGET);
+        } else {
+            ChrsActivity activity =
+                (ChrsActivity) getLocalActivityManager().getActivity(TABTAG_TARGET);
+            activity.drawChrsBitmap();
+        }
     }
 
 }

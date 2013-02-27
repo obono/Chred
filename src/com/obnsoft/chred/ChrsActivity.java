@@ -213,7 +213,7 @@ public class ChrsActivity extends Activity implements OnItemSelectedListener {
 
     /*-----------------------------------------------------------------------*/
 
-    private void drawChrsBitmap() {
+    protected void drawChrsBitmap() {
         ChrData chrData = mApp.mChrData;
         int hUnits = chrData.getTargetSizeH();
         int vUnits = chrData.getTargetSizeV();

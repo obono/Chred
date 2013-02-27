@@ -165,6 +165,7 @@ public class ChrData {
             for (int i = 0; i < mChrs.length; i++) {
                 mChrs[i].setBytes(data, HEADER2.length + i * BYTES_PER_CHR);
             }
+            mDirty = true;
             return true;
         }
         return false;

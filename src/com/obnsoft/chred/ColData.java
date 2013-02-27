@@ -72,6 +72,7 @@ public class ColData {
                 mColor[i] = Color.rgb(bits5To8(val & 0x1F),
                         bits5To8(val >> 5 & 0x1F), bits5To8(val >> 10 & 0x1F));
             }
+            mDirty = true;
             return true;
         }
         return false;

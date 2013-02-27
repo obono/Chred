@@ -87,6 +87,8 @@ public class MyApplication extends Application {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        mChrData.resetDirty();
+        mColData.resetDirty();
 
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
         mChrIdx = prefs.getInt(PREF_KEY_CHR, 0);
