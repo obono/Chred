@@ -33,25 +33,27 @@ import com.obnsoft.app.FilePickerActivity;
 public class MyFilePickerActivity extends FilePickerActivity {
 
     public static final String INTENT_EXTRA_TITLEID = "titleId";
-    public static final String DEFAULT_DIRECTORY =
-        Environment.getExternalStorageDirectory().getPath()
-                .concat(File.separator).concat("CHRED").concat(File.separator);
+    public static final String DEFAULT_DIR =
+        Environment.getExternalStorageDirectory().getPath().concat("/petitcom/");
+    public static final String DEFAULT_DIR_COL = DEFAULT_DIR.concat("COL/");
+    public static final String DEFAULT_DIR_CHR = DEFAULT_DIR.concat("CHR/");
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         setContentView(R.layout.file_picker);
-        File file = new File(DEFAULT_DIRECTORY);
-        if (!file.exists()) {
-            file.mkdir();
-        }
-        super.onCreate(savedInstanceState);
         Intent intent = getIntent();
         if (intent != null) {
             int id = intent.getIntExtra(INTENT_EXTRA_TITLEID, 0);
             if (id != 0) {
                 setTitle(id);
             }
+            String path = intent.getStringExtra(INTENT_EXTRA_DIRECTORY);
+            File dir = new File((path == null) ? DEFAULT_DIR : path);
+            if (!dir.exists()) {
+                dir.mkdirs();
+            }
         }
+        super.onCreate(savedInstanceState);
         setResourceId(R.drawable.ic_folder, R.drawable.ic_file,
                 R.drawable.ic_newfile, R.string.msg_createfile);
     }

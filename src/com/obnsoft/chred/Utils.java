@@ -113,11 +113,11 @@ public class Utils {
     public static void showYesNoDialog(
             Context context, int iconId, int titleId, int msgId,
             android.content.DialogInterface.OnClickListener listener) {
-        showYesNoDialog(context, iconId, context.getText(titleId), msgId, listener);
+        showYesNoDialog(context, iconId, context.getString(titleId), msgId, listener);
     }
 
     public static void showYesNoDialog(
-            Context context, int iconId, CharSequence title, int msgId,
+            Context context, int iconId, String title, int msgId,
             android.content.DialogInterface.OnClickListener listener) {
         new android.app.AlertDialog.Builder(context)
                 .setIcon(iconId)
@@ -157,6 +157,10 @@ public class Utils {
 
     public static void showToast(Context context, int msgId) {
         Toast.makeText(context, msgId, Toast.LENGTH_SHORT).show();
+    }
+
+    public static void showToast(Context context, String msg) {
+        Toast.makeText(context, msg, Toast.LENGTH_SHORT).show();
     }
 
 }

@@ -29,6 +29,11 @@ import android.util.Log;
 
 public class MyApplication extends Application {
 
+    public static final String PTC_KEYWORD = "ANDROID";
+    public static final String FNAMEEXT_PTC = ".ptc";
+    public static final String FNAME_DEFAULT_CHR = "chara.ptc";
+    public static final String FNAME_DEFAULT_COL = "palette.ptc";
+
     public int mChrIdx;
     public int mPalIdx;
     public int mColIdx;
@@ -39,10 +44,6 @@ public class MyApplication extends Application {
     public PaletteAdapter mPalAdapter;
 
     private static final String TAG = "CHRED";
-
-    private static final String FNAME_CHR = "chara.ptc";
-    private static final String FNAME_COL = "palette.ptc";
-    private static final String PTC_KEYWORD = "ANDROID";
 
     private static final String PREF_KEY_CHR = "chara";
     private static final String PREF_KEY_PAL = "palette";
@@ -66,7 +67,7 @@ public class MyApplication extends Application {
         InputStream in;
         try {
             try {
-                in = openFileInput(FNAME_CHR);
+                in = openFileInput(FNAME_DEFAULT_CHR);
             } catch (FileNotFoundException e) {
                 in = as.open("spu1.ptc");
             }
@@ -75,7 +76,7 @@ public class MyApplication extends Application {
             }
             in.close();
             try {
-                in = openFileInput(FNAME_COL);
+                in = openFileInput(FNAME_DEFAULT_COL);
             } catch (FileNotFoundException e) {
                 in = as.open("palette.ptc");
             }
@@ -109,7 +110,7 @@ public class MyApplication extends Application {
         OutputStream out;
         try {
             if (mChrData.getDirty()) {
-                out = openFileOutput(FNAME_CHR, MODE_PRIVATE);
+                out = openFileOutput(FNAME_DEFAULT_CHR, MODE_PRIVATE);
                 if (!mChrData.saveToStream(out, PTC_KEYWORD)) {
                     Log.e(TAG, "Failed to save character.");
                 }
@@ -117,7 +118,7 @@ public class MyApplication extends Application {
                 mChrData.resetDirty();
             }
             if (mColData.getDirty()) {
-                out = openFileOutput(FNAME_COL, MODE_PRIVATE);
+                out = openFileOutput(FNAME_DEFAULT_COL, MODE_PRIVATE);
                 if (!mColData.saveToStream(out, PTC_KEYWORD)) {
                     Log.e(TAG, "Failed to save palette.");
                 }
