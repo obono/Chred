@@ -21,7 +21,7 @@
     <string name="menu_version">Version info</string>
     <string name="msg_newfilename">Enter the file name</string>
     <string name="msg_topdirectory">(Top directory)</string>
-    <string name="msg_nofiles">No files...</string>
+    <string name="msg_nofiles">No files&#8230;</string>
     <string name="msg_createfile">(New file)</string>
     <string name="msg_overwrite">Are you sure to overwrite?</string>
     <string name="msg_loadchr">CHR data is loaded  successfully.</string>

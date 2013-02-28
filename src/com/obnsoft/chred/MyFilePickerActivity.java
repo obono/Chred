@@ -78,7 +78,7 @@ public class MyFilePickerActivity extends FilePickerActivity {
                     setResultAndFinish(path);
                 }
             };
-            Utils.showYesNoDialog(this, android.R.drawable.ic_dialog_alert,
+            Utils.showYesNoDialog(this, R.drawable.ic_caution,
                     R.string.menu_export, R.string.msg_overwrite, cl);
         } else {
             setResultAndFinish(path);

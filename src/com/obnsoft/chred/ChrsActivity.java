@@ -167,6 +167,7 @@ public class ChrsActivity extends Activity implements OnItemSelectedListener {
         mGridView.setOnItemClickListener(new OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int pos, long id) {
+                mGridView.setSelection(pos);
                 mApp.mChrIdx = (int) id;
                 mAdapter.notifyDataSetChanged();
             }
@@ -179,6 +180,7 @@ public class ChrsActivity extends Activity implements OnItemSelectedListener {
             mPalSpinner.setSelection(mApp.mPalIdx);
         } else {
             drawChrsBitmap();
+            mGridView.setSelection(mApp.mChrIdx / mChrStep);
         }
         super.onResume();
     }
@@ -235,6 +237,7 @@ public class ChrsActivity extends Activity implements OnItemSelectedListener {
         int itemHeight = mChrHeight * mChrScale;
         mDestRect.set(mChrScale, mChrScale, itemWidth + mChrScale, itemHeight + mChrScale);
         mGridView.setColumnWidth(itemWidth + mChrScale * 2);
+        mGridView.setSelection(mApp.mChrIdx / mChrStep);
         mGridItemLayout = new AbsListView.LayoutParams(
                 itemWidth + mChrScale * 2, itemHeight + mChrScale * 6);
         mAdapter.notifyDataSetChanged();
