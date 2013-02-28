@@ -13,7 +13,7 @@
         />
     <com.obnsoft.view.MagnifyView
         android:id="@+id/view_preview"
-        android:layout_width="66dp"
+        android:layout_width="44dp"
         android:layout_height="0px"
         android:layout_alignTop="@id/spin_palette"
         android:layout_alignParentBottom="true"

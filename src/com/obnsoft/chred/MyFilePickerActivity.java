@@ -110,7 +110,8 @@ public class MyFilePickerActivity extends FilePickerActivity {
                 }
             }
         };
-        Utils.showCustomDialog(this, 0, R.string.msg_newfilename, editText, listener);
+        Utils.showCustomDialog(this, R.drawable.ic_file,
+                R.string.msg_newfilename, editText, listener);
     }
 
     public void onBackDirectory(View v) {
