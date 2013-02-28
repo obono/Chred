@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_code">OBN-A12</string>
-    <string name="app_name">CHRED on Android</string>
+    <string name="app_code" translatable="false">OBN-A12</string>
+    <string name="app_name" translatable="false">CHRED on Android</string>
     <string name="target">Target</string>
     <string name="edit">Edit</string>
     <string name="palette">Palette</string>
