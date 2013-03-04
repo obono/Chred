@@ -40,14 +40,23 @@
         style="@style/MyToggleMove"
         />
     <com.obnsoft.chred.ColorView
-        android:id="@+id/btn_draw"
+        android:id="@+id/btn_color"
         android:layout_width="0px"
         android:layout_height="wrap_content"
         android:layout_above="@id/btn_move"
         android:layout_alignLeft="@id/spin_palette"
         android:layout_alignParentRight="true"
         android:layout_marginBottom="4dp"
-        android:onClick="onClickDrawButton"
+        android:onClick="onClickColorButton"
+        />
+    <ImageButton
+        android:id="@+id/btn_undo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@id/btn_color"
+        android:layout_alignParentRight="true"
+        android:src="@android:drawable/ic_menu_revert"
+        android:onClick="onClickUndoButton"
         />
     <com.obnsoft.view.MagnifyView
         android:id="@+id/view_edit"

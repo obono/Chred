@@ -59,7 +59,8 @@ public class MagnifyView extends View implements OnScaleGestureListener {
     /*-----------------------------------------------------------------------*/
 
     public interface EventHandler {
-        public boolean onTouchEventUnit(MotionEvent ev, int unitX, int unitY);
+        public boolean onTouchEventUnit(
+                int action, float unitX, float unitY, float[] historicalCoords);
     }
 
     /*-----------------------------------------------------------------------*/
@@ -144,9 +145,19 @@ public class MagnifyView extends View implements OnScaleGestureListener {
         int x = (int) event.getX();
         int y = (int) event.getY();
         if (mHandler != null) {
-            int unitX = (x - mDrawRect.left) / mUnit;
-            int unitY = (y - mDrawRect.top) / mUnit;
-            return mHandler.onTouchEventUnit(event, unitX, unitY);
+            int action = event.getActionMasked();
+            float unitX = (x - mDrawRect.left) / mUnit;
+            float unitY = (y - mDrawRect.top) / mUnit;
+            int histCount = event.getHistorySize();
+            float[] histCoords = null;
+            if (histCount > 0) {
+                histCoords = new float[histCount * 2];
+                for (int i = 0; i < histCount; i++) {
+                    histCoords[i * 2]     = (event.getHistoricalX(i) - mDrawRect.left) / mUnit;
+                    histCoords[i * 2 + 1] = (event.getHistoricalY(i) - mDrawRect.top) / mUnit;
+                }
+            }
+            return mHandler.onTouchEventUnit(action, unitX, unitY, histCoords);
         }
 
         if (!mScrollable) return false;
