@@ -26,7 +26,6 @@
         android:layout_alignParentBottom="true"
         android:layout_toRightOf="@id/view_preview"
         android:gravity="center"
-        android:textAppearance="@android:style/TextAppearance.Medium"
         />
     <ToggleButton
         android:id="@+id/btn_move"
@@ -40,10 +39,10 @@
     <com.obnsoft.chred.ColorView
         android:id="@+id/btn_color"
         android:layout_width="60sp"
-        android:layout_height="wrap_content"
+        android:layout_height="0dp"
         android:layout_alignTop="@id/btn_move"
+        android:layout_alignParentBottom="true"
         android:layout_toLeftOf="@id/btn_move"
-        android:layout_margin="4dp"
         android:onClick="onClickColorButton"
         />
     <ImageButton
@@ -52,7 +51,8 @@
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_toLeftOf="@id/btn_color"
-        android:src="@android:drawable/ic_menu_revert"
+        android:padding="8dp"
+        android:src="@drawable/ic_undo"
         android:onClick="onClickUndoButton"
         />
     <com.obnsoft.view.MagnifyView

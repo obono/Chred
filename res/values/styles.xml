@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <style name="MyToggleMove" parent="android:Widget.Button.Toggle">
+        <item name="android:layout_margin">1dp</item>
+        <item name="android:padding">13dp</item>
         <item name="android:background">@drawable/btn_move</item>
         <item name="android:textOn">@null</item>
         <item name="android:textOff">@null</item>
