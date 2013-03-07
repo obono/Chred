@@ -16,8 +16,7 @@
 
 package com.obnsoft.chred;
 
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.util.Arrays;
 
 import android.graphics.Color;
 
@@ -26,9 +25,7 @@ public class ColData {
     public static final int MAX_PALS = 16;
     public static final int COLS_PER_PAL = 16;
 
-    private static final byte[] HEADER1 =
-            {'P', 'X', '0', '1', 0x0C, 0x02, 0x00, 0x00, 0x05, 0x00, 0x00, 0x00};
-    private static final byte[] HEADER2 =
+    private static final byte[] HEADER =
             {'P', 'E', 'T', 'C', '0', '1', '0', '0', 'R', 'C', 'O', 'L'};
 
     private boolean mDirty = false;
@@ -63,12 +60,33 @@ public class ColData {
         mDirty = true;
     }
 
-    public boolean loadFromStream(InputStream in) {
-        byte[] data = new byte[HEADER2.length + mColor.length * 2];
-        if (Utils.loadFromStreamCommon(in, HEADER1, data)) {
-            int offset = HEADER2.length;
+    public static int bits5To8(int val) {
+        return val << 3 | val >> 2;
+    }
+
+    /*-----------------------------------------------------------------------*/
+
+    public byte[] serialize() {
+        byte[] data = new byte[HEADER.length + mColor.length * 2];
+        System.arraycopy(HEADER, 0, data, 0, HEADER.length);
+        int offset = HEADER.length;
+        for (int i = 0; i < mColor.length; i++) {
+            int val = Color.red(mColor[i]) >> 3 |
+                    (Color.green(mColor[i]) & 0xF8) << 2 |
+                    (Color.blue(mColor[i]) & 0xF8) << 7;
+            data[offset + i * 2]     = (byte) (val & 0xFF);
+            data[offset + i * 2 + 1] = (byte) (val >> 8 & 0xFF);
+        }
+        return data;
+    }
+
+    public boolean deserialize(byte[] data) {
+        int headLen = HEADER.length;
+        byte[] headData = new byte[headLen];
+        System.arraycopy(data, 0, headData, 0, headLen);
+        if (Arrays.equals(headData, HEADER)) {
             for (int i = 0; i < mColor.length; i++) {
-                int val = data[offset + i * 2] & 0xFF | data[offset + i * 2 + 1] << 8 & 0x7F00;
+                int val = data[headLen + i * 2] & 0xFF | data[headLen + i * 2 + 1] << 8 & 0x7F00;
                 mColor[i] = Color.rgb(bits5To8(val & 0x1F),
                         bits5To8(val >> 5 & 0x1F), bits5To8(val >> 10 & 0x1F));
             }
@@ -78,21 +96,4 @@ public class ColData {
         return false;
     }
 
-    public boolean saveToStream(OutputStream out, String strName) {
-        byte[] data = new byte[HEADER2.length + mColor.length * 2];
-        System.arraycopy(HEADER2, 0, data, 0, HEADER2.length);
-        int offset = HEADER2.length;
-        for (int i = 0; i < mColor.length; i++) {
-            int val = Color.red(mColor[i]) >> 3 |
-                    (Color.green(mColor[i]) & 0xF8) << 2 |
-                    (Color.blue(mColor[i]) & 0xF8) << 7;
-            data[offset + i * 2]     = (byte) (val & 0xFF);
-            data[offset + i * 2 + 1] = (byte) (val >> 8 & 0xFF);
-        }
-        return Utils.saveToStreamCommon(out, strName, HEADER1, data);
-    }
-
-    public static int bits5To8(int val) {
-        return val << 3 | val >> 2;
-    }
 }

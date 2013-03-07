@@ -16,13 +16,6 @@
 
 package com.obnsoft.chred;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.Arrays;
-
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -33,66 +26,11 @@ import android.widget.Toast;
 
 public class Utils {
 
-    private static final byte[] MD5HEADER =
-            {'P', 'E', 'T', 'I', 'T', 'C', 'O', 'M'};
-
-    public static byte[] getMD5(byte[] data) {
-        byte[] md5 = null;
-        byte[] bytes = new byte[MD5HEADER.length + data.length];
-        System.arraycopy(MD5HEADER, 0, bytes, 0, MD5HEADER.length);
-        System.arraycopy(data, 0, bytes, MD5HEADER.length, data.length);
-        try {
-            MessageDigest digest;
-            digest = MessageDigest.getInstance("MD5");
-            md5 = digest.digest(bytes);
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
-        }
-        return md5;
-    }
-
-    public static boolean loadFromStreamCommon(InputStream in, byte[] header, byte[] data) {
-        byte[] myHeader = new byte[header.length];
-        byte[] name = new byte[8];
-        byte[] md5 = new byte[16];
-        try {
-            in.read(myHeader);
-            if (!Arrays.equals(myHeader, header)) return false;
-            in.read(name);
-            in.read(md5);
-            in.read(data);
-            if (!Arrays.equals(md5, Utils.getMD5(data))) return false;
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return true;
-    }
-
-    public static boolean saveToStreamCommon(
-            OutputStream out, String strName, byte[] header, byte[] data) {
-        byte[] name = new byte[8];
-        Arrays.fill(name, (byte) 0);
-        System.arraycopy(strName.getBytes(), 0, name, 0,
-                (strName.length() > 8) ? 8 : strName.length());
-        byte[] md5 = Utils.getMD5(data);
-
-        try {
-            out.write(header);
-            out.write(name);
-            out.write(md5);
-            out.write(data);
-        } catch (IOException e) {
-            e.printStackTrace();
-            return false;
-        }
-        return true;
-    }
+    public static final char IDEOGRAPHICS_SPACE = 0x3000;
 
     public static int dp2px(Context context, float dp) {
         return (int) (dp * context.getResources().getDisplayMetrics().density);
     }
-
-    public static final char IDEOGRAPHICS_SPACE = 0x3000;
 
     public static String trimUni(String s){
         int len = s.length();

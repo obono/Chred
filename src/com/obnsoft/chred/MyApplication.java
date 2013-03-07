@@ -66,12 +66,15 @@ public class MyApplication extends Application {
         AssetManager as = getResources().getAssets();
         InputStream in;
         try {
+            PTCFile ptcfile = new PTCFile();
             try {
                 in = openFileInput(FNAME_DEFAULT_CHR);
             } catch (FileNotFoundException e) {
                 in = as.open("spu1.ptc");
             }
-            if (!mChrData.loadFromStream(in)) {
+            if (ptcfile.load(in) && ptcfile.getType() == PTCFile.PTC_TYPE_CHR) {
+                mChrData.deserialize(ptcfile.getData());
+            } else {
                 Log.e(TAG, "Failed to load character.");
             }
             in.close();
@@ -80,7 +83,9 @@ public class MyApplication extends Application {
             } catch (FileNotFoundException e) {
                 in = as.open("palette.ptc");
             }
-            if (!mColData.loadFromStream(in)) {
+            if (ptcfile.load(in) && ptcfile.getType() == PTCFile.PTC_TYPE_COL) {
+                mColData.deserialize(ptcfile.getData());
+            } else {
                 Log.e(TAG, "Failed to load palette.");
             }
             in.close();
@@ -113,7 +118,7 @@ public class MyApplication extends Application {
         try {
             if (mChrData.getDirty()) {
                 out = openFileOutput(FNAME_DEFAULT_CHR, MODE_PRIVATE);
-                if (!mChrData.saveToStream(out, PTC_KEYWORD)) {
+                if (!PTCFile.save(out, PTC_KEYWORD, PTCFile.PTC_TYPE_CHR, mChrData.serialize())) {
                     Log.e(TAG, "Failed to save character.");
                 }
                 out.close();
@@ -121,7 +126,7 @@ public class MyApplication extends Application {
             }
             if (mColData.getDirty()) {
                 out = openFileOutput(FNAME_DEFAULT_COL, MODE_PRIVATE);
-                if (!mColData.saveToStream(out, PTC_KEYWORD)) {
+                if (!PTCFile.save(out, PTC_KEYWORD, PTCFile.PTC_TYPE_COL, mColData.serialize())) {
                     Log.e(TAG, "Failed to save palette.");
                 }
                 out.close();

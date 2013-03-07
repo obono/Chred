@@ -155,20 +155,20 @@ public class MainActivity extends TabActivity {
     private void executeImportFromFile(String path) {
         int msgId = R.string.msg_error;
         try {
+            PTCFile ptcfile = new PTCFile();
             InputStream in = new FileInputStream(path);
-            boolean ret = mApp.mColData.loadFromStream(in);
-            in.close();
-            if (ret) {
-                msgId = R.string.msg_loadcol;
-                refreshActivity();
-            } else {
-                in = new FileInputStream(path);
-                if (mApp.mChrData.loadFromStream(in)) {
+            if (ptcfile.load(in)) {
+                if (ptcfile.getType() == PTCFile.PTC_TYPE_CHR) {
+                    mApp.mChrData.deserialize(ptcfile.getData());
                     msgId = R.string.msg_loadchr;
                     refreshActivity();
+                } else if (ptcfile.getType() == PTCFile.PTC_TYPE_COL) {
+                    mApp.mColData.deserialize(ptcfile.getData());
+                    msgId = R.string.msg_loadcol;
+                    refreshActivity();
                 }
-                in.close();
             }
+            in.close();
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) {
@@ -183,37 +183,30 @@ public class MainActivity extends TabActivity {
                 .setItems(PRESET_FNAMES, new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int which) {
                         if (which == 0) {
-                            executeImportFromPresetCol();
+                            executeImportFromPreset("PALETTE");
                         } else {
-                            executeImportFromPresetChr(PRESET_FNAMES[which]);
+                            executeImportFromPreset(PRESET_FNAMES[which]);
                         }
                     }
                 }).show();
     }
 
-    private void executeImportFromPresetCol() {
+    private void executeImportFromPreset(String name) {
         int msgId = R.string.msg_error;
         try {
-            InputStream in = getResources().getAssets().open(MyApplication.FNAME_DEFAULT_COL);
-            if (mApp.mColData.loadFromStream(in)) {
-                msgId = R.string.msg_loadcol;
-                refreshActivity();
-            }
-            in.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        Utils.showToast(this, msgId);
-    }
-
-    private void executeImportFromPresetChr(String name) {
-        int msgId = R.string.msg_error;
-        try {
+            PTCFile ptcfile = new PTCFile();
             InputStream in = getResources().getAssets().open(
                     name.toLowerCase().concat(MyApplication.FNAMEEXT_PTC));
-            if (mApp.mChrData.loadFromStream(in)) {
-                msgId = R.string.msg_loadchr;
-                refreshActivity();
+            if (ptcfile.load(in)) {
+                if (ptcfile.getType() == PTCFile.PTC_TYPE_CHR) {
+                    mApp.mChrData.deserialize(ptcfile.getData());
+                    msgId = R.string.msg_loadchr;
+                    refreshActivity();
+                } else if (ptcfile.getType() == PTCFile.PTC_TYPE_COL) {
+                    mApp.mColData.deserialize(ptcfile.getData());
+                    msgId = R.string.msg_loadcol;
+                    refreshActivity();
+                }
             }
             in.close();
         } catch (IOException e) {
@@ -248,13 +241,13 @@ public class MainActivity extends TabActivity {
         try {
             String strName = MyApplication.PTC_KEYWORD; // TODO
             OutputStream out = new FileOutputStream(path);
-            if (requestCode == REQUEST_ID_EXPORT_COL) {
-                if (mApp.mColData.saveToStream(out, strName)) {
-                    msgId = R.string.msg_savecol;
+            if (requestCode == REQUEST_ID_EXPORT_CHR) {
+                if (PTCFile.save(out, strName, PTCFile.PTC_TYPE_CHR, mApp.mChrData.serialize())) {
+                    msgId = R.string.msg_savechr;
                 }
             } else {
-                if (mApp.mChrData.saveToStream(out, strName)) {
-                    msgId = R.string.msg_savechr;
+                if (PTCFile.save(out, strName, PTCFile.PTC_TYPE_COL, mApp.mColData.serialize())) {
+                    msgId = R.string.msg_savecol;
                 }
             }
             out.close();

@@ -16,8 +16,7 @@
 
 package com.obnsoft.chred;
 
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.util.Arrays;
 
 import android.graphics.Bitmap;
 
@@ -26,9 +25,7 @@ public class ChrData {
     public static final int MAX_CHARS = 256;
     public static final int UNIT_SIZE = 8;
 
-    private static final byte[] HEADER1 =
-            {'P', 'X', '0', '1', 0x0C, 0x20, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00};
-    private static final byte[] HEADER2 =
+    private static final byte[] HEADER =
             {'P', 'E', 'T', 'C', '0', '1', '0', '0', 'R', 'C', 'H', 'R'};
     private static final int BYTES_PER_CHR = UNIT_SIZE * UNIT_SIZE / 2;
 
@@ -159,11 +156,25 @@ public class ChrData {
         }
     }
 
-    public boolean loadFromStream(InputStream in) {
-        byte[] data = new byte[HEADER2.length + mChrs.length * BYTES_PER_CHR];
-        if (Utils.loadFromStreamCommon(in, HEADER1, data)) {
+    /*-----------------------------------------------------------------------*/
+
+    public byte[] serialize() {
+        byte[] data = new byte[HEADER.length + mChrs.length * BYTES_PER_CHR];
+        System.arraycopy(HEADER, 0, data, 0, HEADER.length);
+        for (int i = 0; i < mChrs.length; i++) {
+            System.arraycopy(mChrs[i].getBytes(), 0,
+                    data, HEADER.length + i * BYTES_PER_CHR, BYTES_PER_CHR);
+        }
+        return data;
+    }
+
+    public boolean deserialize(byte[] data) {
+        int headLen = HEADER.length;
+        byte[] headData = new byte[headLen];
+        System.arraycopy(data, 0, headData, 0, headLen);
+        if (Arrays.equals(headData, HEADER)) {
             for (int i = 0; i < mChrs.length; i++) {
-                mChrs[i].setBytes(data, HEADER2.length + i * BYTES_PER_CHR);
+                mChrs[i].setBytes(data, headLen + i * BYTES_PER_CHR);
             }
             mDirty = true;
             return true;
@@ -171,13 +182,4 @@ public class ChrData {
         return false;
     }
 
-    public boolean saveToStream(OutputStream out, String strName) {
-        byte[] data = new byte[HEADER2.length + mChrs.length * BYTES_PER_CHR];
-        System.arraycopy(HEADER2, 0, data, 0, HEADER2.length);
-        for (int i = 0; i < mChrs.length; i++) {
-            System.arraycopy(mChrs[i].getBytes(), 0,
-                    data, HEADER2.length + i * BYTES_PER_CHR, BYTES_PER_CHR);
-        }
-        return Utils.saveToStreamCommon(out, strName, HEADER1, data);
-    }
 }
