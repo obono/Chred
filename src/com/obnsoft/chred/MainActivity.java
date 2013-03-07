@@ -115,6 +115,9 @@ public class MainActivity extends TabActivity {
         case R.id.menu_export_col:
             requestFileToExport(menuId);
             return true;
+        case R.id.menu_export_qr:
+            executeExportToQRCodes();
+            return true;
         case R.id.menu_version:
             showVersion();
             return true;
@@ -257,6 +260,35 @@ public class MainActivity extends TabActivity {
             e.printStackTrace();
         }
         Utils.showToast(this, msgId);
+    }
+
+    private void executeExportToQRCodes() {
+        /*QRCode[] qrAry = PTCFile.generateQRCodes(
+                "HOGEHOGE", PTCFile.PTC_TYPE_CHR, mApp.mChrData.serialize());
+        if (qrAry != null) {
+            int count = qrAry[0].getModuleCount();
+            Bitmap bmp = Bitmap.createBitmap(count, count * qrAry.length, Bitmap.Config.RGB_565);
+            for (int i = 0; i < qrAry.length; i++) {
+                QRCode qr = qrAry[i];
+                for (int y = 0; y < count; y++) {
+                    for (int x = 0; x < count; x++) {
+                        bmp.setPixel(x, y + i * count, qr.isDark(y, x) ? Color.BLACK : Color.WHITE);
+                    }
+                }
+            }
+            try {
+                OutputStream out;
+                out = new FileOutputStream(MyFilePickerActivity.DEFAULT_DIR.concat("qr.png"));
+                bmp.compress(Bitmap.CompressFormat.PNG, 0, out);
+                out.close();
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            bmp.recycle();
+            Utils.showToast(this, R.string.msg_savechr);
+        }*/
     }
 
     private void showVersion() {

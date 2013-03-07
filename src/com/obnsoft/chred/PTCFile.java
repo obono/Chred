@@ -66,8 +66,8 @@ public class PTCFile {
         return save(out, mName, mType, mData);
     }
 
-    public void processQR() {
-        processQR(getName(), getType(), getData());
+    public void generateQRCodes() {
+        generateQRCodes(getName(), getType(), getData());
     }
 
     public void clear() {
@@ -99,13 +99,14 @@ public class PTCFile {
         return true;
     }
 
-    public static void processQR(String name, int type, byte[] data) {
+    public static void generateQRCodes(String name, int type, byte[] data) {
         String strType = (type == PTC_TYPE_CHR) ? "PCHR" : "PCOL";
         byte[] cmprsData = compressData(name, strType, data);
         byte[] md5 = getMD5(cmprsData);
         byte[] qrData = new byte[666]; // TODO: Level 20 Error M
         int unit = qrData.length - 36;
         int qrCount = (int) Math.ceil(cmprsData.length / (double) unit);
+        //QRCode[] qrAry = new QRCode[qrCount];
         byte[] partData = new byte[unit];
 
         for (int i = 0; i < qrCount; i++) {
@@ -126,8 +127,19 @@ public class PTCFile {
             if (len < unit) {
                 Arrays.fill(qrData, 36 + len, 36 + unit, (byte) 0);
             }
-            /* Create QR code */
+
+            /*QRCode qr = new QRCode();
+            try {
+                qr.addData(new String(qrData, "UTF-8"), Mode.MODE_8BIT_BYTE);
+            } catch (UnsupportedEncodingException e) {
+                e.printStackTrace();
+            }
+            qr.setErrorCorrectLevel(ErrorCorrectLevel.M);
+            qr.setTypeNumber(20);
+            qr.make();
+            qrAry[i] = qr;*/
         }
+        //return qrAry;
     }
 
     /*-----------------------------------------------------------------------*/
