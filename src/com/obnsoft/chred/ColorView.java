@@ -21,6 +21,7 @@ import com.obnsoft.view.HSVColorPickerView;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Paint;
 import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
 import android.util.AttributeSet;
@@ -55,7 +56,9 @@ public class ColorView extends TextView {
                     mStroke, mStroke);
         }
         if (mIdx == 0) {
-            canvas.drawLine(getWidth() - 1, 0, 0, getHeight() - 1, getPaint());
+            Paint paint = getPaint();
+            paint.setColor(Color.GRAY);
+            canvas.drawLine(getWidth() - 1, 0, 0, getHeight() - 1, paint);
         }
         super.draw(canvas);
     }

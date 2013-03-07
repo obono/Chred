@@ -29,6 +29,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.AdapterView;
+import android.widget.ImageButton;
 import android.widget.Spinner;
 import android.widget.AdapterView.OnItemSelectedListener;
 import android.widget.TextView;
@@ -46,6 +47,7 @@ public class EditActivity extends Activity
     private TextView mIdxText;
     private Spinner mPalSpinner;
     private ToggleButton mMoveBtn;
+    private ImageButton mUndoBtn;
     private ColorView mColView;
 
     /*-----------------------------------------------------------------------*/
@@ -77,14 +79,13 @@ public class EditActivity extends Activity
         private UndoStep mCurStep;
         private ArrayList<UndoStep> mSteps = new ArrayList<UndoStep>();
         public void startStep() {
+            // Do nothing
+        }
+        public void addDot(int x, int y, int c) {
             if (mCurStep == null) {
                 mCurStep = new UndoStep();
             }
-        }
-        public void addDot(int x, int y, int c) {
-            if (mCurStep != null) {
-                mCurStep.addDot(x, y, c);
-            }
+            mCurStep.addDot(x, y, c);
         }
         public void finishStep() {
             if (mCurStep != null) {
@@ -131,6 +132,7 @@ public class EditActivity extends Activity
 
         mMoveBtn = (ToggleButton) findViewById(R.id.btn_move);
         mColView = (ColorView) findViewById(R.id.btn_color);
+        mUndoBtn = (ImageButton) findViewById(R.id.btn_undo);
     }
 
     @Override
@@ -202,6 +204,7 @@ public class EditActivity extends Activity
             mApp.mChrData.drawTarget(mBitmap, mApp.mChrIdx, mApp.mPalIdx);
             mMagView.invalidate();
             mPreView.invalidate();
+            setButtonsStatus();
         }
     }
 
@@ -241,6 +244,7 @@ public class EditActivity extends Activity
         mUndoBuffer.execUndo();
         mMagView.invalidate();
         mPreView.invalidate();
+        setButtonsStatus();
     }
 
     /*-----------------------------------------------------------------------*/
@@ -249,6 +253,7 @@ public class EditActivity extends Activity
         mMagView.setEventHandler(mMoveBtn.isChecked() ? null : this);
         mColView.setIndex(mApp.mColIdx);
         mColView.setColor(mApp.mColData.getColor(mApp.mPalIdx, mApp.mColIdx));
+        mUndoBtn.setEnabled(!mUndoBuffer.isEmpty());
     }
 
     private boolean drawDotWithHist(int x, int y) {
