@@ -24,6 +24,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import android.app.AlertDialog;
 import android.app.TabActivity;
@@ -33,7 +35,7 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.graphics.Bitmap;
-import android.graphics.Color;
+import android.media.MediaScannerConnection;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -117,8 +119,9 @@ public class MainActivity extends TabActivity {
         case R.id.menu_export_col:
             requestFileToExport(menuId);
             return true;
-        case R.id.menu_export_qr:
-            executeExportToQRCodes();
+        case R.id.menu_export_qr_chr:
+        case R.id.menu_export_qr_col:
+            executeExportToQRCodes(menuId);
             return true;
         case R.id.menu_version:
             showVersion();
@@ -264,34 +267,32 @@ public class MainActivity extends TabActivity {
         Utils.showToast(this, msgId);
     }
 
-    private void executeExportToQRCodes() {
-        boolean[][][] qrAry = PTCFile.generateQRCodes(
-                MyApplication.PTC_KEYWORD, mApp.mChrData.serialize()); // TODO
-        if (qrAry != null) {
-            int count = qrAry[0].length;
-            int unit = count + 8;
-            Bitmap bmp = Bitmap.createBitmap(unit, unit * qrAry.length, Bitmap.Config.RGB_565);
-            bmp.eraseColor(Color.WHITE);
-            for (int i = 0; i < qrAry.length; i++) {
-                boolean[][] qr = qrAry[i];
-                for (int x = 0, xMax = qr.length; x < xMax; x++) {
-                    for (int y = 0, yMax = qr[x].length; y < yMax; y++) {
-                        bmp.setPixel(x + 4, y + 4 + i * unit, qr[x][y] ? Color.BLACK : Color.WHITE);
-                    }
-                }
-            }
+    private void executeExportToQRCodes(int menuId) {
+        byte[] data = (menuId == R.id.menu_export_qr_chr) ?
+                mApp.mChrData.serialize() : mApp.mColData.serialize();
+        Bitmap bmp = PTCFile.generateQRCodes(MyApplication.PTC_KEYWORD, data); // TODO
+        if (bmp != null) {
             try {
+                SimpleDateFormat fmt = new SimpleDateFormat("'qr_'yyMMdd'-'HHmmss'.png'");
+                String path = MyFilePickerActivity.DEFAULT_DIR.concat(fmt.format(new Date()));
                 OutputStream out;
-                out = new FileOutputStream(MyFilePickerActivity.DEFAULT_DIR.concat("qr.png"));
+                out = new FileOutputStream(path);
                 bmp.compress(Bitmap.CompressFormat.PNG, 0, out);
                 out.close();
+                MediaScannerConnection.scanFile(this,
+                        new String[] {path}, new String[] {"image/png"}, null);
+                Utils.showShareDialog(MainActivity.this, R.drawable.ic_export,
+                        R.string.menu_export, R.string.menu_export, path);
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
             } catch (IOException e) {
                 e.printStackTrace();
             }
             bmp.recycle();
-            Utils.showToast(this, R.string.msg_savechr);
+            Utils.showToast(this, (menuId == R.id.menu_export_qr_chr) ?
+                    R.string.msg_savechr : R.string.msg_savecol);
+        } else {
+            Utils.showToast(this, R.string.msg_error);
         }
     }
 

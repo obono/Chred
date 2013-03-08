@@ -1,3 +1,19 @@
+/*
+ * Copyright (C) 2013 OBN-soft
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.obnsoft.chred;
 
 import java.io.IOException;
@@ -8,6 +24,11 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.zip.Deflater;
 
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
+
 import com.swetake.util.Qrcode;
 
 public class PTCFile {
@@ -17,10 +38,15 @@ public class PTCFile {
 
     private static final String PTC_ID = "PX01";
     private static final String PTCQR_ID = "PT";
-    private static final int QR_CAPACITY_20_M = 666;
-    //private static final int QR_CAPACITY_20_L = 858;
     private static final byte[] MD5EXTRA =
             {'P', 'E', 'T', 'I', 'T', 'C', 'O', 'M'};
+
+    private static final int QR_CAPACITY_20_M = 666;
+    //private static final int QR_CAPACITY_20_L = 858;
+    private static final int QR_SIZE = 95;
+    private static final int QR_MARGIN = 8;
+    private static final int QR_PADDING = 16;
+    private static final int QR_STEP = QR_SIZE + QR_MARGIN * 2;
 
     private String mName;
     private int mType;
@@ -70,7 +96,7 @@ public class PTCFile {
         return save(out, mName, mType, mData);
     }
 
-    public boolean[][][] generateQRCodes() {
+    public Bitmap generateQRCodes() {
         return generateQRCodes(getName(), getData());
     }
 
@@ -87,10 +113,10 @@ public class PTCFile {
             return false;
         }
         byte[] header = new byte[20];
-        copyString(header, 0, 4, PTC_ID);
-        copyValue(header, 4, 4, data.length);
-        copyValue(header, 8, 4, type);
-        copyString(header, 12, 8, name);
+        embedString(header, 0, 4, PTC_ID);
+        embedValue(header, 4, 4, data.length);
+        embedValue(header, 8, 4, type);
+        embedString(header, 12, 8, name);
         byte[] md5 = getPetitcomMD5(data);
         try {
             out.write(header);
@@ -103,23 +129,41 @@ public class PTCFile {
         return true;
     }
 
-    public static boolean[][][] generateQRCodes(String name, byte[] data) {
+    public static Bitmap generateQRCodes(String name, byte[] data) {
         byte[] cmprsData = compressData(name, data);
         if (cmprsData == null) {
             return null;
         }
+
+        /*  Prepare for processing data  */
         byte[] md5 = getMD5(cmprsData);
         byte[] qrData = new byte[QR_CAPACITY_20_M];
         int dataUnit = qrData.length - 36;
         int qrCount = (int) Math.ceil(cmprsData.length / (double) dataUnit);
-        boolean[][][] qrAry = new boolean[qrCount][][];
         byte[] partData = new byte[dataUnit];
-
         Qrcode qrBuilder = new Qrcode();
         qrBuilder.setQrcodeVersion(20);
         qrBuilder.setQrcodeEncodeMode('B');
         qrBuilder.setQrcodeErrorCorrect('L');
+
+        /*  Prepare bitmap  */
+        int qw = (int) Math.ceil(Math.sqrt(qrCount));
+        int qh = (qrCount + qw - 1) / qw;
+        Bitmap bmp = Bitmap.createBitmap(qw * QR_STEP + QR_PADDING * 2,
+                qh * QR_STEP + QR_PADDING * 2, Bitmap.Config.RGB_565);
+        bmp.eraseColor(Color.WHITE);
+        Canvas canvas = new Canvas(bmp);
+        Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        paint.setColor(Color.BLACK);
+        paint.setTextSize(12);
+        String lbl = extractString(cmprsData, 9, 3).concat(":").concat(name);
+        canvas.drawText(lbl, (bmp.getWidth() - paint.measureText(lbl)) / 2, QR_PADDING, paint);
+        int qx = QR_MARGIN + QR_PADDING;
+        int qy = QR_MARGIN + QR_PADDING;
+        paint.setTextSize(8);
+
         for (int i = 0; i < qrCount; i++) {
+            /*  Generate QR code  */
             int len = cmprsData.length - i * dataUnit;
             if (len > dataUnit) {
                 len = dataUnit;
@@ -129,15 +173,32 @@ public class PTCFile {
             }
             System.arraycopy(cmprsData, i * dataUnit, partData, 0, len);
             byte[] md5each = getMD5(partData);
-            copyString(qrData, 0, 2, PTCQR_ID);
-            copyValue(qrData, 2, 1, i + 1);
-            copyValue(qrData, 3, 1, qrCount);
+            embedString(qrData, 0, 2, PTCQR_ID);
+            embedValue(qrData, 2, 1, i + 1);
+            embedValue(qrData, 3, 1, qrCount);
             System.arraycopy(md5each, 0, qrData, 4, 16);
             System.arraycopy(md5, 0, qrData, 20, 16);
             System.arraycopy(partData, 0, qrData, 36, len);
-            qrAry[i] = qrBuilder.calQrcode(qrData);
+            boolean[][] qr = qrBuilder.calQrcode(qrData);
+
+            /*  Draw QR code  */
+            if (qrCount > 0) {
+                lbl = String.format("%d / %d", i + 1, qrCount);
+                canvas.drawText(lbl, qx - QR_MARGIN + (QR_STEP - paint.measureText(lbl)) / 2,
+                        qy - QR_MARGIN + QR_STEP + 4, paint);
+            }
+            for (int x = 0, xMax = qr.length; x < xMax; x++) {
+                for (int y = 0, yMax = qr[x].length; y < yMax; y++) {
+                    bmp.setPixel(qx + x, qy + y, qr[x][y] ? Color.BLACK : Color.WHITE);
+                }
+            }
+            qx += QR_STEP;
+            if (qx >= qw * QR_STEP) {
+                qx = QR_MARGIN + QR_PADDING;
+                qy += QR_STEP;
+            }
         }
-        return qrAry;
+        return bmp;
     }
 
     /*-----------------------------------------------------------------------*/
@@ -172,10 +233,10 @@ public class PTCFile {
         int len = compresser.deflate(work);
         if (len > 0 && len < work.length - 1) {
             byte[] data = new byte[20 + len];
-            copyString(data, 0, 8, strName);
-            System.arraycopy(orgData, 44, data, 8, 4); // "R***"
-            copyValue(data, 12, 4, len);
-            copyValue(data, 16, 4, orgData.length);
+            embedString(data, 0, 8, strName);
+            System.arraycopy(orgData, 8, data, 8, 4); // "R***"
+            embedValue(data, 12, 4, len);
+            embedValue(data, 16, 4, orgData.length);
             System.arraycopy(work, 0, data, 20, len);
             return data;
         }
@@ -191,7 +252,7 @@ public class PTCFile {
         return buf.toString();
     }
 
-    private static void copyString(byte[] data, int start, int len, String str) {
+    private static void embedString(byte[] data, int start, int len, String str) {
         Arrays.fill(data, start, start + len, (byte) 0);
         System.arraycopy(str.getBytes(), 0, data, start,
                 (str.length() > len) ? len : str.length());
@@ -205,7 +266,7 @@ public class PTCFile {
         return val;
     }
 
-    private static void copyValue(byte[] ary, int start, int len, int val) {
+    private static void embedValue(byte[] ary, int start, int len, int val) {
         for (int i = 0; i < len; i++) {
             ary[start + i] = (byte) (val & 0xFF);
             val >>= 8;

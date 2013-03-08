@@ -4,6 +4,8 @@
     <string name="edit">編集</string>
     <string name="palette">パレット</string>
     <string name="size">サイズ</string>
+    <string name="view">確認</string>
+    <string name="share">共有</string>
     <string name="title_import">PTCファイルを開く</string>
     <string name="title_export_chr">CHRデータを保存</string>
     <string name="title_export_col">COLデータを保存</string>
@@ -15,7 +17,8 @@
     <string name="menu_export">エクスポート</string>
     <string name="menu_export_chr">CHRデータを保存</string>
     <string name="menu_export_col">COLデータを保存</string>
-    <string name="menu_export_qr">QRコードを出力</string>
+    <string name="menu_export_qr_chr">CHRデータをQRコードに変換</string>
+    <string name="menu_export_qr_col">COLデータをQRコードに変換</string>
     <string name="menu_version">バージョン情報</string>
     <string name="msg_newfilename">ファイル名を入力</string>
     <string name="msg_topdirectory">(トップディレクトリ)</string>

@@ -16,9 +16,14 @@
 
 package com.obnsoft.chred;
 
+import java.io.File;
+
 import android.app.AlertDialog;
+import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
+import android.net.Uri;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.EditText;
@@ -50,19 +55,52 @@ public class Utils {
 
     public static void showYesNoDialog(
             Context context, int iconId, int titleId, int msgId,
-            android.content.DialogInterface.OnClickListener listener) {
+            DialogInterface.OnClickListener listener) {
         showYesNoDialog(context, iconId, context.getString(titleId), msgId, listener);
     }
 
     public static void showYesNoDialog(
             Context context, int iconId, String title, int msgId,
-            android.content.DialogInterface.OnClickListener listener) {
-        new android.app.AlertDialog.Builder(context)
+            DialogInterface.OnClickListener listener) {
+        new AlertDialog.Builder(context)
                 .setIcon(iconId)
                 .setTitle(title)
                 .setMessage(msgId)
                 .setPositiveButton(android.R.string.yes, listener)
                 .setNegativeButton(android.R.string.no, null)
+                .show();
+    }
+
+    public static void showShareDialog(
+            final Context context, int iconId, int titleId, int msgId, final String path) {
+        DialogInterface.OnClickListener l = new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                Intent intent = new Intent();
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                intent.setType("image/png");
+                Uri uri = Uri.fromFile(new File(path));
+                if (which == DialogInterface.BUTTON_POSITIVE) {
+                    intent.setAction(Intent.ACTION_SEND);
+                    intent.putExtra(Intent.EXTRA_STREAM, uri);
+                } else {
+                    intent.setAction(Intent.ACTION_VIEW);
+                    intent.setData(uri);
+                }
+                try {
+                    context.startActivity(intent);
+                } catch (ActivityNotFoundException e) {
+                    e.printStackTrace();
+                }
+            }
+        };
+        new AlertDialog.Builder(context)
+                .setIcon(iconId)
+                .setTitle(titleId)
+                .setMessage(msgId)
+                .setPositiveButton(R.string.share, l)
+                .setNeutralButton(R.string.view, l)
+                .setNegativeButton(android.R.string.ok, null)
                 .show();
     }
 

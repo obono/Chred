@@ -6,6 +6,8 @@
     <string name="edit">Edit</string>
     <string name="palette">Palette</string>
     <string name="size">Size</string>
+    <string name="view">View</string>
+    <string name="share">Share</string>
     <string name="title_import">Load PTC file</string>
     <string name="title_export_chr">Save CHR data to PTC file</string>
     <string name="title_export_col">Save COL data to PTC file</string>
@@ -17,7 +19,8 @@
     <string name="menu_export">Export</string>
     <string name="menu_export_chr">CHR data to PTC file</string>
     <string name="menu_export_col">COL data to PTC file</string>
-    <string name="menu_export_qr">Both data to QR code</string>
+    <string name="menu_export_qr_chr">CHR data to QR code</string>
+    <string name="menu_export_qr_col">COL data to QR code</string>
     <string name="menu_version">Version info</string>
     <string name="msg_newfilename">Enter the file name</string>
     <string name="msg_topdirectory">(Top directory)</string>

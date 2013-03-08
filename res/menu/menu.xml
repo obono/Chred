@@ -20,7 +20,8 @@
         <menu>
             <item android:id="@+id/menu_export_chr" android:title="@string/menu_export_chr" />
             <item android:id="@+id/menu_export_col" android:title="@string/menu_export_col" />
-            <item android:id="@+id/menu_export_qr" android:title="@string/menu_export_qr" />
+            <item android:id="@+id/menu_export_qr_chr" android:title="@string/menu_export_qr_chr" />
+            <item android:id="@+id/menu_export_qr_col" android:title="@string/menu_export_qr_col" />
         </menu>
     </item>
     <item
