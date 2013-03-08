@@ -8,6 +8,8 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.zip.Deflater;
 
+import com.swetake.util.Qrcode;
+
 public class PTCFile {
 
     public static final int PTC_TYPE_CHR = 3;
@@ -15,7 +17,9 @@ public class PTCFile {
 
     private static final String PTC_ID = "PX01";
     private static final String PTCQR_ID = "PT";
-    private static final byte[] MD5HEADER =
+    private static final int QR_CAPACITY_20_M = 666;
+    //private static final int QR_CAPACITY_20_L = 858;
+    private static final byte[] MD5EXTRA =
             {'P', 'E', 'T', 'I', 'T', 'C', 'O', 'M'};
 
     private String mName;
@@ -66,8 +70,8 @@ public class PTCFile {
         return save(out, mName, mType, mData);
     }
 
-    public void generateQRCodes() {
-        generateQRCodes(getName(), getType(), getData());
+    public boolean[][][] generateQRCodes() {
+        return generateQRCodes(getName(), getData());
     }
 
     public void clear() {
@@ -99,24 +103,31 @@ public class PTCFile {
         return true;
     }
 
-    public static void generateQRCodes(String name, int type, byte[] data) {
-        String strType = (type == PTC_TYPE_CHR) ? "PCHR" : "PCOL";
-        byte[] cmprsData = compressData(name, strType, data);
+    public static boolean[][][] generateQRCodes(String name, byte[] data) {
+        byte[] cmprsData = compressData(name, data);
+        if (cmprsData == null) {
+            return null;
+        }
         byte[] md5 = getMD5(cmprsData);
-        byte[] qrData = new byte[666]; // TODO: Level 20 Error M
-        int unit = qrData.length - 36;
-        int qrCount = (int) Math.ceil(cmprsData.length / (double) unit);
-        //QRCode[] qrAry = new QRCode[qrCount];
-        byte[] partData = new byte[unit];
+        byte[] qrData = new byte[QR_CAPACITY_20_M];
+        int dataUnit = qrData.length - 36;
+        int qrCount = (int) Math.ceil(cmprsData.length / (double) dataUnit);
+        boolean[][][] qrAry = new boolean[qrCount][][];
+        byte[] partData = new byte[dataUnit];
 
+        Qrcode qrBuilder = new Qrcode();
+        qrBuilder.setQrcodeVersion(20);
+        qrBuilder.setQrcodeEncodeMode('B');
+        qrBuilder.setQrcodeErrorCorrect('L');
         for (int i = 0; i < qrCount; i++) {
-            int len = cmprsData.length - i * unit;
-            if (len > unit) {
-                len = unit;
+            int len = cmprsData.length - i * dataUnit;
+            if (len > dataUnit) {
+                len = dataUnit;
             } else {
                 partData = new byte[len];
+                qrData = new byte[len + 36];
             }
-            System.arraycopy(cmprsData, i * unit, partData, 0, len);
+            System.arraycopy(cmprsData, i * dataUnit, partData, 0, len);
             byte[] md5each = getMD5(partData);
             copyString(qrData, 0, 2, PTCQR_ID);
             copyValue(qrData, 2, 1, i + 1);
@@ -124,22 +135,9 @@ public class PTCFile {
             System.arraycopy(md5each, 0, qrData, 4, 16);
             System.arraycopy(md5, 0, qrData, 20, 16);
             System.arraycopy(partData, 0, qrData, 36, len);
-            if (len < unit) {
-                Arrays.fill(qrData, 36 + len, 36 + unit, (byte) 0);
-            }
-
-            /*QRCode qr = new QRCode();
-            try {
-                qr.addData(new String(qrData, "UTF-8"), Mode.MODE_8BIT_BYTE);
-            } catch (UnsupportedEncodingException e) {
-                e.printStackTrace();
-            }
-            qr.setErrorCorrectLevel(ErrorCorrectLevel.M);
-            qr.setTypeNumber(20);
-            qr.make();
-            qrAry[i] = qr;*/
+            qrAry[i] = qrBuilder.calQrcode(qrData);
         }
-        //return qrAry;
+        return qrAry;
     }
 
     /*-----------------------------------------------------------------------*/
@@ -157,22 +155,25 @@ public class PTCFile {
     }
 
     private static byte[] getPetitcomMD5(byte[] data) {
-        byte[] work = new byte[MD5HEADER.length + data.length];
-        System.arraycopy(MD5HEADER, 0, work, 0, MD5HEADER.length);
-        System.arraycopy(data, 0, work, MD5HEADER.length, data.length);
+        byte[] work = new byte[MD5EXTRA.length + data.length];
+        System.arraycopy(MD5EXTRA, 0, work, 0, MD5EXTRA.length);
+        System.arraycopy(data, 0, work, MD5EXTRA.length, data.length);
         return getMD5(work);
     }
 
-    private static byte[] compressData(String strName, String strType, byte[] orgData) {
-        byte[] work = new byte[1024 * 1024];
-        Deflater compresser = new Deflater();
+    private static byte[] compressData(String strName, byte[] orgData) {
+        if (orgData == null) {
+            return null;
+        }
+        byte[] work = new byte[1024 * 1024]; // 1MiB
+        Deflater compresser = new Deflater(/*Deflater.BEST_COMPRESSION*/);
         compresser.setInput(orgData);
         compresser.finish();
         int len = compresser.deflate(work);
         if (len > 0 && len < work.length - 1) {
             byte[] data = new byte[20 + len];
             copyString(data, 0, 8, strName);
-            copyString(data, 8, 4, strType);
+            System.arraycopy(orgData, 44, data, 8, 4); // "R***"
             copyValue(data, 12, 4, len);
             copyValue(data, 16, 4, orgData.length);
             System.arraycopy(work, 0, data, 20, len);
@@ -185,7 +186,7 @@ public class PTCFile {
         StringBuffer buf = new StringBuffer();
         for (int i = 0; i < len; i++) {
             char c = (char) data[start + i];
-            if (c > 0) buf.append(c); // TODO: is this safe?
+            if (c >= '0' && c <= '9' || c >= 'A' && c <= 'Z' || c == '_') buf.append(c);
         }
         return buf.toString();
     }

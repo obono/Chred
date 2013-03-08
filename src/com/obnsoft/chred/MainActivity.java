@@ -32,6 +32,8 @@ import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
+import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -263,16 +265,18 @@ public class MainActivity extends TabActivity {
     }
 
     private void executeExportToQRCodes() {
-        /*QRCode[] qrAry = PTCFile.generateQRCodes(
-                "HOGEHOGE", PTCFile.PTC_TYPE_CHR, mApp.mChrData.serialize());
+        boolean[][][] qrAry = PTCFile.generateQRCodes(
+                MyApplication.PTC_KEYWORD, mApp.mChrData.serialize()); // TODO
         if (qrAry != null) {
-            int count = qrAry[0].getModuleCount();
-            Bitmap bmp = Bitmap.createBitmap(count, count * qrAry.length, Bitmap.Config.RGB_565);
+            int count = qrAry[0].length;
+            int unit = count + 8;
+            Bitmap bmp = Bitmap.createBitmap(unit, unit * qrAry.length, Bitmap.Config.RGB_565);
+            bmp.eraseColor(Color.WHITE);
             for (int i = 0; i < qrAry.length; i++) {
-                QRCode qr = qrAry[i];
-                for (int y = 0; y < count; y++) {
-                    for (int x = 0; x < count; x++) {
-                        bmp.setPixel(x, y + i * count, qr.isDark(y, x) ? Color.BLACK : Color.WHITE);
+                boolean[][] qr = qrAry[i];
+                for (int x = 0, xMax = qr.length; x < xMax; x++) {
+                    for (int y = 0, yMax = qr[x].length; y < yMax; y++) {
+                        bmp.setPixel(x + 4, y + 4 + i * unit, qr[x][y] ? Color.BLACK : Color.WHITE);
                     }
                 }
             }
@@ -288,7 +292,7 @@ public class MainActivity extends TabActivity {
             }
             bmp.recycle();
             Utils.showToast(this, R.string.msg_savechr);
-        }*/
+        }
     }
 
     private void showVersion() {
