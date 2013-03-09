@@ -22,6 +22,7 @@ import java.io.OutputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
+import java.util.Locale;
 import java.util.zip.Deflater;
 
 import android.graphics.Bitmap;
@@ -183,7 +184,7 @@ public class PTCFile {
 
             /*  Draw QR code  */
             if (qrCount > 0) {
-                lbl = String.format("%d / %d", i + 1, qrCount);
+                lbl = String.format(Locale.US, "%d / %d", i + 1, qrCount);
                 canvas.drawText(lbl, qx - QR_MARGIN + (QR_STEP - paint.measureText(lbl)) / 2,
                         qy - QR_MARGIN + QR_STEP + 4, paint);
             }
@@ -227,7 +228,7 @@ public class PTCFile {
             return null;
         }
         byte[] work = new byte[1024 * 1024]; // 1MiB
-        Deflater compresser = new Deflater(/*Deflater.BEST_COMPRESSION*/);
+        Deflater compresser = new Deflater(Deflater.BEST_COMPRESSION);
         compresser.setInput(orgData);
         compresser.finish();
         int len = compresser.deflate(work);

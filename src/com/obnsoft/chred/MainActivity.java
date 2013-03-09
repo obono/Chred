@@ -17,6 +17,7 @@
 package com.obnsoft.chred;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -26,6 +27,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Locale;
 
 import android.app.AlertDialog;
 import android.app.TabActivity;
@@ -161,28 +163,11 @@ public class MainActivity extends TabActivity {
     }
 
     private void executeImportFromFile(String path) {
-        int msgId = R.string.msg_error;
         try {
-            PTCFile ptcfile = new PTCFile();
-            InputStream in = new FileInputStream(path);
-            if (ptcfile.load(in)) {
-                if (ptcfile.getType() == PTCFile.PTC_TYPE_CHR) {
-                    mApp.mChrData.deserialize(ptcfile.getData());
-                    msgId = R.string.msg_loadchr;
-                    refreshActivity();
-                } else if (ptcfile.getType() == PTCFile.PTC_TYPE_COL) {
-                    mApp.mColData.deserialize(ptcfile.getData());
-                    msgId = R.string.msg_loadcol;
-                    refreshActivity();
-                }
-            }
-            in.close();
+            executeImportFromStream(new FileInputStream(path));
         } catch (FileNotFoundException e) {
             e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
         }
-        Utils.showToast(this, msgId);
     }
 
     private void selectPresetToImport() {
@@ -190,21 +175,26 @@ public class MainActivity extends TabActivity {
                 .setTitle(R.string.menu_import_preset)
                 .setItems(PRESET_FNAMES, new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int which) {
+                        String fname;
                         if (which == 0) {
-                            executeImportFromPreset("PALETTE");
+                            fname = "palette.ptc";
                         } else {
-                            executeImportFromPreset(PRESET_FNAMES[which]);
+                            fname = PRESET_FNAMES[which].toLowerCase(Locale.US)
+                                    .concat(MyApplication.FNAMEEXT_PTC);
+                        }
+                        try {
+                            executeImportFromStream(getResources().getAssets().open(fname));
+                        } catch (IOException e) {
+                            e.printStackTrace();
                         }
                     }
                 }).show();
     }
 
-    private void executeImportFromPreset(String name) {
+    private void executeImportFromStream(InputStream in) {
         int msgId = R.string.msg_error;
         try {
             PTCFile ptcfile = new PTCFile();
-            InputStream in = getResources().getAssets().open(
-                    name.toLowerCase().concat(MyApplication.FNAMEEXT_PTC));
             if (ptcfile.load(in)) {
                 if (ptcfile.getType() == PTCFile.PTC_TYPE_CHR) {
                     mApp.mChrData.deserialize(ptcfile.getData());
@@ -245,26 +235,31 @@ public class MainActivity extends TabActivity {
     }
 
     private void executeExportToFile(int requestCode, String path) {
-        int msgId = R.string.msg_error;
+        boolean ret = false;
         try {
+            int msgId = R.string.msg_error;
             String strName = MyApplication.PTC_KEYWORD; // TODO
             OutputStream out = new FileOutputStream(path);
             if (requestCode == REQUEST_ID_EXPORT_CHR) {
-                if (PTCFile.save(out, strName, PTCFile.PTC_TYPE_CHR, mApp.mChrData.serialize())) {
-                    msgId = R.string.msg_savechr;
-                }
-            } else {
-                if (PTCFile.save(out, strName, PTCFile.PTC_TYPE_COL, mApp.mColData.serialize())) {
-                    msgId = R.string.msg_savecol;
-                }
+                ret = PTCFile.save(out, strName, PTCFile.PTC_TYPE_CHR, mApp.mChrData.serialize());
+                msgId = R.string.msg_savechr;
+            } else if (requestCode == REQUEST_ID_EXPORT_COL) {
+                ret = PTCFile.save(out, strName, PTCFile.PTC_TYPE_COL, mApp.mColData.serialize());
+                msgId = R.string.msg_savecol;
             }
             out.close();
+            if (ret) {
+                Utils.showShareDialog(MainActivity.this, R.drawable.ic_export,
+                        R.string.menu_export, msgId, path);
+            }
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
         }
-        Utils.showToast(this, msgId);
+        if (!ret) {
+            Utils.showToast(this, R.string.msg_error);
+        }
     }
 
     private void executeExportToQRCodes(int menuId) {
@@ -273,24 +268,27 @@ public class MainActivity extends TabActivity {
         Bitmap bmp = PTCFile.generateQRCodes(MyApplication.PTC_KEYWORD, data); // TODO
         if (bmp != null) {
             try {
-                SimpleDateFormat fmt = new SimpleDateFormat("'qr_'yyMMdd'-'HHmmss'.png'");
-                String path = MyFilePickerActivity.DEFAULT_DIR.concat(fmt.format(new Date()));
+                File dir = new File(MyFilePickerActivity.DEFAULT_DIR_QR);
+                if (!dir.exists()) {
+                    dir.mkdirs();
+                }
+                SimpleDateFormat fmt =
+                        new SimpleDateFormat("'qr_'yyMMdd'-'HHmmss'.png'", Locale.US);
+                String path = MyFilePickerActivity.DEFAULT_DIR_QR.concat(fmt.format(new Date()));
                 OutputStream out;
                 out = new FileOutputStream(path);
                 bmp.compress(Bitmap.CompressFormat.PNG, 0, out);
                 out.close();
+                bmp.recycle();
                 MediaScannerConnection.scanFile(this,
                         new String[] {path}, new String[] {"image/png"}, null);
                 Utils.showShareDialog(MainActivity.this, R.drawable.ic_export,
-                        R.string.menu_export, R.string.menu_export, path);
+                        R.string.menu_export, R.string.msg_saveqr, path);
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            bmp.recycle();
-            Utils.showToast(this, (menuId == R.id.menu_export_qr_chr) ?
-                    R.string.msg_savechr : R.string.msg_savecol);
         } else {
             Utils.showToast(this, R.string.msg_error);
         }

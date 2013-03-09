@@ -26,6 +26,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.view.View;
 import android.view.WindowManager;
+import android.webkit.MimeTypeMap;
 import android.widget.EditText;
 import android.widget.Toast;
 
@@ -73,35 +74,41 @@ public class Utils {
 
     public static void showShareDialog(
             final Context context, int iconId, int titleId, int msgId, final String path) {
+        final String mimetype = MimeTypeMap.getSingleton()
+                .getMimeTypeFromExtension(path.substring(path.lastIndexOf('.') + 1));
+        boolean showNeutral = (mimetype != null);
         DialogInterface.OnClickListener l = new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 Intent intent = new Intent();
                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                intent.setType("image/png");
                 Uri uri = Uri.fromFile(new File(path));
                 if (which == DialogInterface.BUTTON_POSITIVE) {
                     intent.setAction(Intent.ACTION_SEND);
+                    intent.setType((mimetype == null) ? "application/octet-stream" : mimetype);
                     intent.putExtra(Intent.EXTRA_STREAM, uri);
                 } else {
                     intent.setAction(Intent.ACTION_VIEW);
-                    intent.setData(uri);
+                    intent.setDataAndType(uri, mimetype);
                 }
                 try {
                     context.startActivity(intent);
                 } catch (ActivityNotFoundException e) {
+                    showToast(context, R.string.msg_error);
                     e.printStackTrace();
                 }
             }
         };
-        new AlertDialog.Builder(context)
+        AlertDialog.Builder dlgBuilder = new AlertDialog.Builder(context)
                 .setIcon(iconId)
                 .setTitle(titleId)
                 .setMessage(msgId)
                 .setPositiveButton(R.string.share, l)
-                .setNeutralButton(R.string.view, l)
-                .setNegativeButton(android.R.string.ok, null)
-                .show();
+                .setNegativeButton(android.R.string.ok, null);
+        if (showNeutral) {
+            dlgBuilder.setNeutralButton(R.string.view, l);
+        }
+        dlgBuilder.show();
     }
 
     public static void showCustomDialog(

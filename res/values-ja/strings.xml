@@ -29,6 +29,7 @@
     <string name="msg_loadcol">COLデータを読み込みました。</string>
     <string name="msg_savechr">CHRデータを保存しました。</string>
     <string name="msg_savecol">COLデータを保存しました。</string>
+    <string name="msg_saveqr">QRコードを生成しました。</string>
     <string name="msg_error">処理中にエラーが発生しました。</string>
     <string name="msg_invalid">無効な値が入力されました。</string>
 </resources>

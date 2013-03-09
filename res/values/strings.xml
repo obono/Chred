@@ -31,6 +31,7 @@
     <string name="msg_loadcol">COL data is loaded successfully.</string>
     <string name="msg_savechr">CHR data is saved successfully.</string>
     <string name="msg_savecol">COL data is saved successfully.</string>
+    <string name="msg_saveqr">QR code is generated successfully.</string>
     <string name="msg_error">An error occurred during process.</string>
     <string name="msg_invalid">You entered an invalid parameter.</string>
 </resources>
