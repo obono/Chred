@@ -16,14 +16,12 @@
 
 package com.obnsoft.chred;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -33,9 +31,6 @@ import android.app.AlertDialog;
 import android.app.TabActivity;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
-import android.content.pm.PackageManager.NameNotFoundException;
 import android.graphics.Bitmap;
 import android.media.MediaScannerConnection;
 import android.os.Bundle;
@@ -126,7 +121,7 @@ public class MainActivity extends TabActivity {
             executeExportToQRCodes(menuId);
             return true;
         case R.id.menu_version:
-            showVersion();
+            startActivity(new Intent(this, SettingActivity.class));
             return true;
         }
         return false;
@@ -292,31 +287,6 @@ public class MainActivity extends TabActivity {
         } else {
             Utils.showToast(this, R.string.msg_error);
         }
-    }
-
-    private void showVersion() {
-        final View aboutView = View.inflate(this, R.layout.about, null);
-        try {
-            PackageInfo packageInfo = getPackageManager().getPackageInfo(
-                    getPackageName(), PackageManager.GET_META_DATA);
-            TextView textView = (TextView) aboutView.findViewById(R.id.text_about_version);
-            textView.setText("Version ".concat(packageInfo.versionName));
-
-            StringBuilder buf = new StringBuilder();
-            InputStream in = getResources().openRawResource(R.raw.license);
-            BufferedReader reader = new BufferedReader(new InputStreamReader(in));
-            String str;
-            while((str = reader.readLine()) != null) {
-                buf.append(str).append('\n');
-            }
-            textView = (TextView) aboutView.findViewById(R.id.text_about_message);
-            textView.setText(buf.toString());
-        } catch (NameNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        Utils.showCustomDialog(this, R.drawable.ic_version, R.string.menu_version, aboutView, null);
     }
 
     private void refreshActivity() {

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- ListPreference
+        android:key="scale"
+        android:defaultValue="1f"
+        android:title="@string/prefs_scale"
+        android:entries="@array/entries_scale"
+        android:entryValues="@array/entryvalues_scale"
+        /-->
+    <com.obnsoft.chred.VersionPreference
+        android:key="about"
+        android:persistent="false"
+        android:title="@string/prefs_version"
+        android:dialogLayout="@layout/about"
+        android:dialogIcon="@drawable/ic_version"
+        android:negativeButtonText="@null"
+        />
+</PreferenceScreen>
