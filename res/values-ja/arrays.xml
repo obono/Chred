@@ -3,10 +3,10 @@
     <string-array name="ptcname_entries">
         <item>毎回入力する</item>
         <item>ファイル名から推測</item>
-        <item>固定</item>
+        <item>プリセット名から</item>
     </string-array>
     <string-array name="qrname_entries">
         <item>毎回入力する</item>
-        <item>固定</item>
+        <item>プリセット名から</item>
     </string-array>
 </resources>

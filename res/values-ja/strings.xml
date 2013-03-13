@@ -20,9 +20,11 @@
     <string name="menu_export_qr_chr">CHRデータをQRコードに変換</string>
     <string name="menu_export_qr_col">COLデータをQRコードに変換</string>
     <string name="menu_prefs">設定</string>
-    <!-- string name="prefs_ename_ptc">Embed name in PTC file</string>
-    <string name="prefs_ename_qr">Embed name in QR code</string>
-    <string name="prefs_ename">Preset embed name</string -->
+    <string name="prefs_ename">埋め込むファイル名</string>
+    <string name="prefs_ename_ptc">PTCファイル保存時</string>
+    <string name="prefs_ename_qr">QRコード作成時</string>
+    <string name="prefs_ename_preset">プリセット名</string>
+    <string name="prefs_other">その他</string>
     <string name="prefs_version">バージョン情報</string>
     <string name="msg_newfilename">ファイル名を入力</string>
     <string name="msg_topdirectory">(トップディレクトリ)</string>

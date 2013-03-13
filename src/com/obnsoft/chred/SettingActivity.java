@@ -19,10 +19,11 @@ package com.obnsoft.chred;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.os.Bundle;
+import android.preference.EditTextPreference;
 import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.PreferenceActivity;
-import android.preference.PreferenceScreen;
+import android.preference.PreferenceGroup;
 
 public class SettingActivity extends PreferenceActivity
         implements OnSharedPreferenceChangeListener {
@@ -31,10 +32,7 @@ public class SettingActivity extends PreferenceActivity
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         addPreferencesFromResource(R.xml.prefs);
-        PreferenceScreen screen = getPreferenceScreen();
-        for (int i = 0; i < screen.getPreferenceCount(); i++) {
-            setSummary(screen.getPreference(i).getKey());
-        }
+        setSummaries(getPreferenceScreen());
     }
 
     @Override
@@ -58,10 +56,24 @@ public class SettingActivity extends PreferenceActivity
 
     /*-----------------------------------------------------------------------*/
 
+    private void setSummaries(Preference pref) {
+        if (pref instanceof PreferenceGroup) {
+            PreferenceGroup pg = (PreferenceGroup) pref;
+            for (int i = 0; i < pg.getPreferenceCount(); i++) {
+                setSummaries(pg.getPreference(i));
+            }
+        } else {
+            setSummary(pref.getKey());
+        }
+    }
+
     private void setSummary(String key) {
         Preference pref = findPreference(key);
         if (pref instanceof ListPreference) {
             pref.setSummary(((ListPreference) pref).getEntry());
+        }
+        if (pref instanceof EditTextPreference) {
+            pref.setSummary(((EditTextPreference) pref).getText());
         }
     }
 

@@ -18,21 +18,21 @@
     <string-array name="ptcname_entries">
         <item>Enter every time</item>
         <item>Guess from file name</item>
-        <item>Constants</item>
+        <item>Use preset always</item>
     </string-array>
     <string-array name="ptcname_entryvalues">
         <item>every</item>
         <item>guess</item>
-        <item>consts</item>
+        <item>const</item>
     </string-array>
 
     <string-array name="qrname_entries">
         <item>Enter every time</item>
-        <item>Constants</item>
+        <item>Use preset always</item>
     </string-array>
     <string-array name="qrname_entryvalues">
         <item>every</item>
-        <item>consts</item>
+        <item>const</item>
     </string-array>
 
 </resources>

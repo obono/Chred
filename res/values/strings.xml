@@ -22,9 +22,11 @@
     <string name="menu_export_qr_chr">CHR data to QR code</string>
     <string name="menu_export_qr_col">COL data to QR code</string>
     <string name="menu_prefs">Preferences</string>
-    <string name="prefs_ename_ptc">Embed name in PTC file</string>
-    <string name="prefs_ename_qr">Embed name in QR code</string>
-    <string name="prefs_ename">Preset embed name</string>
+    <string name="prefs_ename">Embed name</string>
+    <string name="prefs_ename_ptc">For PTC file</string>
+    <string name="prefs_ename_qr">For QR code</string>
+    <string name="prefs_ename_preset">Preset name</string>
+    <string name="prefs_other">Other</string>
     <string name="prefs_version">Version info</string>
     <string name="msg_newfilename">Enter the file name</string>
     <string name="msg_topdirectory">(Top directory)</string>
