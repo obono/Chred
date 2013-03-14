@@ -22,9 +22,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 
 import android.content.Context;
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
-import android.content.pm.PackageManager.NameNotFoundException;
 import android.preference.DialogPreference;
 import android.util.AttributeSet;
 import android.view.View;
@@ -39,27 +36,23 @@ public class VersionPreference extends DialogPreference {
     @Override
     protected View onCreateDialogView() {
         Context context = getContext();
-        final View aboutView = super.onCreateDialogView();
+        View aboutView = super.onCreateDialogView();
+        TextView textView = (TextView) aboutView.findViewById(R.id.text_about_version);
+        textView.setText(Utils.getVersion(context));
+        StringBuilder buf = new StringBuilder();
         try {
-            PackageInfo packageInfo = context.getPackageManager().getPackageInfo(
-                    context.getPackageName(), PackageManager.GET_META_DATA);
-            TextView textView = (TextView) aboutView.findViewById(R.id.text_about_version);
-            textView.setText("Version ".concat(packageInfo.versionName));
-
-            StringBuilder buf = new StringBuilder();
             InputStream in = context.getResources().openRawResource(R.raw.license);
             BufferedReader reader = new BufferedReader(new InputStreamReader(in));
             String str;
             while((str = reader.readLine()) != null) {
                 buf.append(str).append('\n');
             }
-            textView = (TextView) aboutView.findViewById(R.id.text_about_message);
-            textView.setText(buf.toString());
-        } catch (NameNotFoundException e) {
-            e.printStackTrace();
+            in.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
+        textView = (TextView) aboutView.findViewById(R.id.text_about_message);
+        textView.setText(buf.toString());
         return aboutView;
     }
 

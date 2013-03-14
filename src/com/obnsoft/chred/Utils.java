@@ -23,6 +23,9 @@ import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+import android.content.pm.PackageManager.NameNotFoundException;
 import android.net.Uri;
 import android.view.View;
 import android.view.WindowManager;
@@ -33,6 +36,17 @@ import android.widget.Toast;
 public class Utils {
 
     public static final char IDEOGRAPHICS_SPACE = 0x3000;
+
+    public static String getVersion(Context context) {
+        try {
+            PackageInfo packageInfo = context.getPackageManager().getPackageInfo(
+                    context.getPackageName(), PackageManager.GET_META_DATA);
+            return "Version ".concat(packageInfo.versionName);
+        } catch (NameNotFoundException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 
     public static int dp2px(Context context, float dp) {
         return (int) (dp * context.getResources().getDisplayMetrics().density);

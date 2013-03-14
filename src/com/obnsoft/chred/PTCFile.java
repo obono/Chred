@@ -46,9 +46,9 @@ public class PTCFile {
 
     private static final int QR_CAPACITY_20_M = 666;
     //private static final int QR_CAPACITY_20_L = 858;
-    private static final int QR_SIZE = 95;
-    private static final int QR_MARGIN = 8;
-    private static final int QR_PADDING = 16;
+    private static final int QR_SIZE = 190; // 95*2
+    private static final int QR_MARGIN = 16;
+    private static final int QR_PADDING = 32;
     private static final int QR_STEP = QR_SIZE + QR_MARGIN * 2;
 
     private String mName;
@@ -103,8 +103,8 @@ public class PTCFile {
         return save(out, mName, mType, mData);
     }
 
-    public Bitmap generateQRCodes() {
-        return generateQRCodes(getName(), getData());
+    public Bitmap generateQRCodes(String footer) {
+        return generateQRCodes(getName(), getData(), footer);
     }
 
     public void clear() {
@@ -146,7 +146,7 @@ public class PTCFile {
         return true;
     }
 
-    public static Bitmap generateQRCodes(String name, byte[] data) {
+    public static Bitmap generateQRCodes(String name, byte[] data, String footer) {
         byte[] cmprsData = compressData(name, data);
         if (cmprsData == null) {
             return null;
@@ -171,13 +171,20 @@ public class PTCFile {
         bmp.eraseColor(Color.WHITE);
         Canvas canvas = new Canvas(bmp);
         Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        paint.setStyle(Paint.Style.FILL);
+        if (footer != null) {
+            paint.setColor(Color.GRAY);
+            paint.setTextSize(12);
+            canvas.drawText(footer, bmp.getWidth() - paint.measureText(footer),
+                    bmp.getHeight() - paint.descent(), paint);
+        }
         paint.setColor(Color.BLACK);
-        paint.setTextSize(12);
+        paint.setTextSize(24);
         String lbl = extractString(cmprsData, 9, 3).concat(":").concat(name);
         canvas.drawText(lbl, (bmp.getWidth() - paint.measureText(lbl)) / 2, QR_PADDING, paint);
         int qx = QR_MARGIN + QR_PADDING;
         int qy = QR_MARGIN + QR_PADDING;
-        paint.setTextSize(8);
+        paint.setTextSize(16);
 
         for (int i = 0; i < qrCount; i++) {
             /*  Generate QR code  */
@@ -200,13 +207,18 @@ public class PTCFile {
 
             /*  Draw QR code  */
             if (qrCount > 0) {
+                paint.setAntiAlias(true);
                 lbl = String.format(Locale.US, "%d / %d", i + 1, qrCount);
                 canvas.drawText(lbl, qx - QR_MARGIN + (QR_STEP - paint.measureText(lbl)) / 2,
-                        qy - QR_MARGIN + QR_STEP + 4, paint);
+                        qy - QR_MARGIN + QR_STEP + paint.getTextSize() / 2, paint);
             }
+            paint.setAntiAlias(false);
             for (int x = 0, xMax = qr.length; x < xMax; x++) {
                 for (int y = 0, yMax = qr[x].length; y < yMax; y++) {
-                    bmp.setPixel(qx + x, qy + y, qr[x][y] ? Color.BLACK : Color.WHITE);
+                    if (qr[x][y]) {
+                        canvas.drawRect(qx + x * 2, qy + y * 2,
+                                qx + x * 2 + 2, qy + y * 2 + 2, paint);
+                    }
                 }
             }
             qx += QR_STEP;
