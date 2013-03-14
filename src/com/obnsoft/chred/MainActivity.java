@@ -30,6 +30,7 @@ import java.util.Locale;
 import android.app.AlertDialog;
 import android.app.TabActivity;
 import android.content.DialogInterface;
+import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.media.MediaScannerConnection;
@@ -38,6 +39,7 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TabHost;
 import android.widget.TextView;
@@ -58,7 +60,6 @@ public class MainActivity extends TabActivity {
 
     private static final int REQUEST_ID_EXPORT_CHR = 11;
     private static final int REQUEST_ID_EXPORT_COL = 12;
-    //private static final int REQUEST_ID_EXPORT_QR = 13;
 
     private MyApplication mApp;
 
@@ -118,7 +119,7 @@ public class MainActivity extends TabActivity {
             return true;
         case R.id.menu_export_qr_chr:
         case R.id.menu_export_qr_col:
-            executeExportToQRCodes(menuId);
+            confirmExportToQRCodes(menuId);
             return true;
         case R.id.menu_version:
             startActivity(new Intent(this, SettingActivity.class));
@@ -139,7 +140,7 @@ public class MainActivity extends TabActivity {
         case REQUEST_ID_EXPORT_CHR:
         case REQUEST_ID_EXPORT_COL:
             if (resultCode == RESULT_OK) {
-                executeExportToFile(requestCode,
+                confirmExportToFile(requestCode,
                         data.getStringExtra(MyFilePickerActivity.INTENT_EXTRA_SELECTPATH));
             }
             break;
@@ -159,53 +160,75 @@ public class MainActivity extends TabActivity {
 
     private void executeImportFromFile(String path) {
         try {
-            executeImportFromStream(new FileInputStream(path));
+            confirmImportFromStream(new FileInputStream(path));
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
     }
 
     private void selectPresetToImport() {
-        new AlertDialog.Builder(this)
-                .setTitle(R.string.menu_import_preset)
-                .setItems(PRESET_FNAMES, new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int which) {
-                        String fname;
-                        if (which == 0) {
-                            fname = "palette.ptc";
-                        } else {
-                            fname = PRESET_FNAMES[which].toLowerCase(Locale.US)
-                                    .concat(MyApplication.FNAMEEXT_PTC);
-                        }
-                        try {
-                            executeImportFromStream(getResources().getAssets().open(fname));
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                }).show();
-    }
-
-    private void executeImportFromStream(InputStream in) {
-        int msgId = R.string.msg_error;
-        try {
-            PTCFile ptcfile = new PTCFile();
-            if (ptcfile.load(in)) {
-                if (ptcfile.getType() == PTCFile.PTC_TYPE_CHR) {
-                    mApp.mChrData.deserialize(ptcfile.getData());
-                    msgId = R.string.msg_loadchr;
-                    refreshActivity();
-                } else if (ptcfile.getType() == PTCFile.PTC_TYPE_COL) {
-                    mApp.mColData.deserialize(ptcfile.getData());
-                    msgId = R.string.msg_loadcol;
-                    refreshActivity();
+        OnClickListener cl = new OnClickListener() {
+            public void onClick(DialogInterface dialog, int which) {
+                String fname;
+                if (which == 0) {
+                    fname = "palette.ptc";
+                } else {
+                    fname = PRESET_FNAMES[which].toLowerCase(Locale.US)
+                            .concat(MyApplication.FNAMEEXT_PTC);
+                }
+                try {
+                    confirmImportFromStream(getResources().getAssets().open(fname));
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
             }
+        };
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.menu_import_preset)
+                .setItems(PRESET_FNAMES, cl)
+                .show();
+    }
+
+    private void confirmImportFromStream(InputStream in) {
+        boolean ret = false;
+        try {
+            PTCFile ptcfile = new PTCFile();
+            ret = ptcfile.load(in);
             in.close();
+            if (ret) {
+                executeImportFromPTCFile(ptcfile);
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
-        Utils.showToast(this, msgId);
+        if (!ret) {
+            Utils.showToast(this, R.string.msg_error);
+        }
+    }
+
+    private void executeImportFromPTCFile(final PTCFile ptcfile) {
+        final String pname = ptcfile.getNameWithType();
+        OnClickListener cl = new OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                if (ptcfile.getType() == PTCFile.PTC_TYPE_CHR) {
+                    mApp.mChrData.deserialize(ptcfile.getData());
+                    refreshActivity();
+                } else if (ptcfile.getType() == PTCFile.PTC_TYPE_COL) {
+                    mApp.mColData.deserialize(ptcfile.getData());
+                    refreshActivity();
+                }
+                String msg = String.format(getString(R.string.msg_loadptc), pname);
+                Utils.showToast(MainActivity.this, msg);
+            }
+        };
+        if (pname != null) {
+            String msg = String.format(getString(R.string.msg_import), pname);
+            Utils.showYesNoDialog(
+                    this, R.drawable.ic_import, R.string.menu_import, msg, cl);
+        } else {
+            Utils.showToast(this, R.string.msg_notsupported);
+        }
     }
 
     private void requestFileToExport(int menuId) {
@@ -229,23 +252,64 @@ public class MainActivity extends TabActivity {
         startActivityForResult(intent, requestCode);
     }
 
-    private void executeExportToFile(int requestCode, String path) {
+    private void confirmExportToFile(final int requestCode, final String path) {
+        switch (mApp.mEnameModePtc) {
+        case MyApplication.ENAME_MODE_EVERY:
+            final EditText et = new EditText(this, null, R.attr.editTextEnameStyle);
+            OnClickListener l = new OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    executeExportToFile(requestCode, path, et.getText().toString());
+                }
+            };
+            Utils.showCustomDialog(this, R.drawable.ic_file, R.string.msg_ename, et, l);
+            break;
+        case MyApplication.ENAME_MODE_GUESS:
+            executeExportToFile(requestCode, path, guessEmbedName(path));
+            break;
+        case MyApplication.ENAME_MODE_CONST:
+            executeExportToFile(requestCode, path, mApp.mEname);
+            break;
+        }
+    }
+
+    private static final char FULLWIDTH_EXCLAMATION_MARK = 0xFF01;
+
+    private String guessEmbedName(String path) {
+        String fname = MyFilePickerActivity.getFilename(path);
+        if (fname.endsWith(MyApplication.FNAMEEXT_PTC)) {
+            fname = fname.substring(0, fname.length() - MyApplication.FNAMEEXT_PTC.length());
+        }
+        StringBuffer buf = new StringBuffer(8);
+        for (int i = 0; i < fname.length() && buf.length() < 8; i++) {
+            char c = fname.charAt(i);
+            if (c >= FULLWIDTH_EXCLAMATION_MARK) c -= (FULLWIDTH_EXCLAMATION_MARK - '!');
+            if (c >= 'a') c -= 0x20;
+            if (c >= '0' && c <= '9' || c >= 'A' && c <= 'Z' || c == '_') buf.append(c);
+        }
+        return buf.toString();
+    }
+
+    private void executeExportToFile(int requestCode, String path, String ename) {
         boolean ret = false;
+        if (ename == null || ename.length() == 0) {
+            ename = MyApplication.ENAME_DEFAULT;
+        }
         try {
-            int msgId = R.string.msg_error;
-            String strName = MyApplication.PTC_KEYWORD; // TODO
             OutputStream out = new FileOutputStream(path);
+            String pname = null;
             if (requestCode == REQUEST_ID_EXPORT_CHR) {
-                ret = PTCFile.save(out, strName, PTCFile.PTC_TYPE_CHR, mApp.mChrData.serialize());
-                msgId = R.string.msg_savechr;
+                ret = PTCFile.save(out, ename, PTCFile.PTC_TYPE_CHR, mApp.mChrData.serialize());
+                pname = PTCFile.getNameWithType(PTCFile.PTC_TYPE_CHR, ename);
             } else if (requestCode == REQUEST_ID_EXPORT_COL) {
-                ret = PTCFile.save(out, strName, PTCFile.PTC_TYPE_COL, mApp.mColData.serialize());
-                msgId = R.string.msg_savecol;
+                ret = PTCFile.save(out, ename, PTCFile.PTC_TYPE_COL, mApp.mColData.serialize());
+                pname = PTCFile.getNameWithType(PTCFile.PTC_TYPE_COL, ename);
             }
             out.close();
             if (ret) {
+                String msg = String.format(getString(R.string.msg_saveptc), pname);
                 Utils.showShareDialog(MainActivity.this, R.drawable.ic_export,
-                        R.string.menu_export, msgId, path);
+                        R.string.menu_export, msg, path);
             }
         } catch (FileNotFoundException e) {
             e.printStackTrace();
@@ -257,10 +321,38 @@ public class MainActivity extends TabActivity {
         }
     }
 
-    private void executeExportToQRCodes(int menuId) {
-        byte[] data = (menuId == R.id.menu_export_qr_chr) ?
-                mApp.mChrData.serialize() : mApp.mColData.serialize();
-        Bitmap bmp = PTCFile.generateQRCodes(MyApplication.PTC_KEYWORD, data); // TODO
+    private void confirmExportToQRCodes(final int menuId) {
+        switch (mApp.mEnameModePtc) {
+        case MyApplication.ENAME_MODE_EVERY:
+            final EditText et = new EditText(this, null, R.attr.editTextEnameStyle);
+            OnClickListener l = new OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    executeExportToQRCodes(menuId, et.getText().toString());
+                }
+            };
+            Utils.showCustomDialog(this, R.drawable.ic_file, R.string.msg_ename, et, l);
+            break;
+        case MyApplication.ENAME_MODE_CONST:
+            executeExportToQRCodes(menuId, mApp.mEname);
+            break;
+        }
+    }
+
+    private void executeExportToQRCodes(int menuId, String ename) {
+        if (ename == null || ename.length() == 0) {
+            ename = MyApplication.ENAME_DEFAULT;
+        }
+        byte[] data;
+        String pname;
+        if (menuId == R.id.menu_export_qr_chr) {
+            data = mApp.mChrData.serialize();
+            pname = PTCFile.getNameWithType(PTCFile.PTC_TYPE_CHR, ename);
+        } else {
+            data = mApp.mColData.serialize();
+            pname = PTCFile.getNameWithType(PTCFile.PTC_TYPE_COL, ename);
+        }
+        Bitmap bmp = PTCFile.generateQRCodes(ename, data);
         if (bmp != null) {
             try {
                 File dir = new File(MyFilePickerActivity.DEFAULT_DIR_QR);
@@ -277,8 +369,9 @@ public class MainActivity extends TabActivity {
                 bmp.recycle();
                 MediaScannerConnection.scanFile(this,
                         new String[] {path}, new String[] {"image/png"}, null);
+                String msg = String.format(getString(R.string.msg_saveqr), pname);
                 Utils.showShareDialog(MainActivity.this, R.drawable.ic_export,
-                        R.string.menu_export, R.string.msg_saveqr, path);
+                        R.string.menu_export, msg, path);
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
             } catch (IOException e) {

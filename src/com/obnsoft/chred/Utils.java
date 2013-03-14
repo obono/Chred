@@ -55,25 +55,19 @@ public class Utils {
     /*-----------------------------------------------------------------------*/
 
     public static void showYesNoDialog(
-            Context context, int iconId, int titleId, int msgId,
-            DialogInterface.OnClickListener listener) {
-        showYesNoDialog(context, iconId, context.getString(titleId), msgId, listener);
-    }
-
-    public static void showYesNoDialog(
-            Context context, int iconId, String title, int msgId,
+            Context context, int iconId, int titleId, String msg,
             DialogInterface.OnClickListener listener) {
         new AlertDialog.Builder(context)
                 .setIcon(iconId)
-                .setTitle(title)
-                .setMessage(msgId)
+                .setTitle(titleId)
+                .setMessage(msg)
                 .setPositiveButton(android.R.string.yes, listener)
                 .setNegativeButton(android.R.string.no, null)
                 .show();
     }
 
     public static void showShareDialog(
-            final Context context, int iconId, int titleId, int msgId, final String path) {
+            final Context context, int iconId, int titleId, String msg, final String path) {
         final String mimetype = MimeTypeMap.getSingleton()
                 .getMimeTypeFromExtension(path.substring(path.lastIndexOf('.') + 1));
         boolean showNeutral = (mimetype != null);
@@ -102,7 +96,7 @@ public class Utils {
         AlertDialog.Builder dlgBuilder = new AlertDialog.Builder(context)
                 .setIcon(iconId)
                 .setTitle(titleId)
-                .setMessage(msgId)
+                .setMessage(msg)
                 .setPositiveButton(R.string.share, l)
                 .setNegativeButton(android.R.string.ok, null);
         if (showNeutral) {

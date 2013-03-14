@@ -37,6 +37,8 @@ public class PTCFile {
     public static final int PTC_TYPE_CHR = 3;
     public static final int PTC_TYPE_COL = 5;
 
+    private static final String[] PTC_TYPE_PREFIX =
+            {null, null, null, "CHR:", null, "COL:"};
     private static final String PTC_ID = "PX01";
     private static final String PTCQR_ID = "PT";
     private static final byte[] MD5EXTRA =
@@ -56,7 +58,7 @@ public class PTCFile {
     /*-----------------------------------------------------------------------*/
 
     public String getName() {
-        return (mName == null) ? MyApplication.PTC_KEYWORD : mName;
+        return (mName == null) ? MyApplication.ENAME_DEFAULT : mName;
     }
 
     public int getType() {
@@ -65,6 +67,10 @@ public class PTCFile {
 
     public byte[] getData() {
         return mData;
+    }
+
+    public String getNameWithType() {
+        return getNameWithType(mType, getName());
     }
 
     public boolean load(InputStream in) {
@@ -108,6 +114,16 @@ public class PTCFile {
     }
 
     /*-----------------------------------------------------------------------*/
+
+    public static String getNameWithType(int type, String name) {
+        switch (type) {
+        case PTC_TYPE_CHR:
+        case PTC_TYPE_COL:
+            return PTC_TYPE_PREFIX[type].concat(name);
+        default:
+            return null;
+        }
+    }
 
     public static boolean save(OutputStream out, String name, int type, byte[] data) {
         if (out == null || name == null || data == null) {
@@ -248,6 +264,7 @@ public class PTCFile {
         StringBuffer buf = new StringBuffer();
         for (int i = 0; i < len; i++) {
             char c = (char) data[start + i];
+            if (c >= 'a') c -= 0x20;
             if (c >= '0' && c <= '9' || c >= 'A' && c <= 'Z' || c == '_') buf.append(c);
         }
         return buf.toString();

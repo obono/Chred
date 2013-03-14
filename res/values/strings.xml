@@ -29,15 +29,16 @@
     <string name="prefs_other">Other</string>
     <string name="prefs_version">Version info</string>
     <string name="msg_newfilename">Enter the file name</string>
+    <string name="msg_ename">Enter the file name to embed\n(capital letters only)</string>
     <string name="msg_topdirectory">(Top directory)</string>
     <string name="msg_nofiles">No files&#8230;</string>
     <string name="msg_createfile">(New file)</string>
-    <string name="msg_overwrite">Are you sure to overwrite?</string>
-    <string name="msg_loadchr">CHR data is loaded  successfully.</string>
-    <string name="msg_loadcol">COL data is loaded successfully.</string>
-    <string name="msg_savechr">CHR data is saved successfully.</string>
-    <string name="msg_savecol">COL data is saved successfully.</string>
-    <string name="msg_saveqr">QR code is generated successfully.</string>
+    <string name="msg_import">Are you sure to import \"%s\"?\n(Current data will be overwritten.)</string>
+    <string name="msg_overwrite">Are you sure to overwrite \"%s\"?</string>
+    <string name="msg_loadptc">\"%s\" is imported successfully.</string>
+    <string name="msg_saveptc">\"%s\" is exported successfully.</string>
+    <string name="msg_saveqr">QR code for \"%s\" is generated successfully.</string>
     <string name="msg_error">An error occurred during process.</string>
     <string name="msg_invalid">You entered an invalid parameter.</string>
+    <string name="msg_notsupported">Sorry, this PTC file isn\'t supported.</string>
 </resources>

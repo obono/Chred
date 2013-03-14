@@ -29,15 +29,22 @@ import android.util.Log;
 
 public class MyApplication extends Application {
 
-    public static final String PTC_KEYWORD = "ANDROID";
+    public static final int ENAME_MODE_EVERY = 0;
+    public static final int ENAME_MODE_GUESS = 1;
+    public static final int ENAME_MODE_CONST = 2;
+
     public static final String FNAMEEXT_PTC = ".ptc";
     public static final String FNAME_DEFAULT_CHR = "chara.ptc";
     public static final String FNAME_DEFAULT_COL = "palette.ptc";
+    public static final String ENAME_DEFAULT = "ANDROID";
 
     public int mChrIdx;
     public int mPalIdx;
     public int mColIdx;
     public String mCurTab;
+    public String mEname;
+    public int mEnameModePtc;
+    public int mEnameModeQr;
 
     public ChrData mChrData;
     public ColData mColData;
@@ -51,6 +58,10 @@ public class MyApplication extends Application {
     private static final String PREF_KEY_TAB = "tab";
     private static final String PREF_KEY_HUNITS = "h_units";
     private static final String PREF_KEY_VUNITS = "v_units";
+    private static final String PREF_KEY_ENAME = "ename";
+    private static final String PREF_KEY_ENAME_PTC = "ename_ptc";
+    private static final String PREF_KEY_ENAME_QR = "ename_qr";
+    private static final String ENAME_MODE_STRS[] = { "every", "guess", "const" };
 
     /*-----------------------------------------------------------------------*/
 
@@ -101,6 +112,7 @@ public class MyApplication extends Application {
         mColIdx = prefs.getInt(PREF_KEY_COL, 0);
         mCurTab = prefs.getString(PREF_KEY_TAB, null);
         mChrData.setTargetSize(prefs.getInt(PREF_KEY_HUNITS, 2), prefs.getInt(PREF_KEY_VUNITS, 2));
+        setEnamePolicy(prefs);
     }
 
     public void saveData() {
@@ -118,7 +130,7 @@ public class MyApplication extends Application {
         try {
             if (mChrData.getDirty()) {
                 out = openFileOutput(FNAME_DEFAULT_CHR, MODE_PRIVATE);
-                if (!PTCFile.save(out, PTC_KEYWORD, PTCFile.PTC_TYPE_CHR, mChrData.serialize())) {
+                if (!PTCFile.save(out, ENAME_DEFAULT, PTCFile.PTC_TYPE_CHR, mChrData.serialize())) {
                     Log.e(TAG, "Failed to save character.");
                 }
                 out.close();
@@ -126,7 +138,7 @@ public class MyApplication extends Application {
             }
             if (mColData.getDirty()) {
                 out = openFileOutput(FNAME_DEFAULT_COL, MODE_PRIVATE);
-                if (!PTCFile.save(out, PTC_KEYWORD, PTCFile.PTC_TYPE_COL, mColData.serialize())) {
+                if (!PTCFile.save(out, ENAME_DEFAULT, PTCFile.PTC_TYPE_COL, mColData.serialize())) {
                     Log.e(TAG, "Failed to save palette.");
                 }
                 out.close();
@@ -135,6 +147,19 @@ public class MyApplication extends Application {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public void setEnamePolicy(SharedPreferences prefs) {
+        mEname = prefs.getString(PREF_KEY_ENAME, ENAME_DEFAULT);
+        mEnameModePtc = getEnameModeVal(prefs.getString(PREF_KEY_ENAME_PTC, "const"));
+        mEnameModeQr = getEnameModeVal(prefs.getString(PREF_KEY_ENAME_QR, "const"));
+    }
+
+    private int getEnameModeVal(String modeStr) {
+        for (int i = 0; i < ENAME_MODE_STRS.length; i++) {
+            if (ENAME_MODE_STRS[i].equals(modeStr)) return i;
+        }
+        return -1;
     }
 
 }

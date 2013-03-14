@@ -79,8 +79,9 @@ public class MyFilePickerActivity extends FilePickerActivity {
                     setResultAndFinish(path);
                 }
             };
+            String msg = String.format(getString(R.string.msg_overwrite), getFilename(path));
             Utils.showYesNoDialog(this, R.drawable.ic_caution,
-                    R.string.menu_export, R.string.msg_overwrite, cl);
+                    R.string.menu_export, msg, cl);
         } else {
             setResultAndFinish(path);
         }
@@ -111,7 +112,7 @@ public class MyFilePickerActivity extends FilePickerActivity {
                 }
             }
         };
-        Utils.showCustomDialog(this, R.drawable.ic_file,
+        Utils.showCustomDialog(this, R.drawable.ic_newfile,
                 R.string.msg_newfilename, editText, listener);
     }
 
@@ -122,4 +123,9 @@ public class MyFilePickerActivity extends FilePickerActivity {
     public void onUpperDirectory(View v) {
         goToUpperDirectory();
     }
+
+    public static String getFilename(String path) {
+        return path.substring(path.lastIndexOf(File.separatorChar) + 1);
+    }
+
 }

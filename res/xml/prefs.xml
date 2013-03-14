@@ -9,6 +9,7 @@
             android:title="@string/prefs_ename_ptc"
             android:entries="@array/ptcname_entries"
             android:entryValues="@array/ptcname_entryvalues"
+            android:dialogIcon="@drawable/ic_file"
             />
         <ListPreference
             android:key="ename_qr"
@@ -16,15 +17,15 @@
             android:title="@string/prefs_ename_qr"
             android:entries="@array/qrname_entries"
             android:entryValues="@array/qrname_entryvalues"
+            android:dialogIcon="@drawable/ic_file"
             />
         <EditTextPreference
             android:key="ename"
             android:defaultValue="ANDROID"
             android:title="@string/prefs_ename_preset"
-            android:digits="0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_"
-            android:maxLength="8"
-            android:singleLine="true"
-            android:inputType="textCapCharacters|textNoSuggestions|textVisiblePassword"
+            android:dialogTitle="@string/msg_ename"
+            android:dialogIcon="@drawable/ic_file"
+            style="@style/MyEditTextEname"
             />
     </PreferenceCategory>
     <PreferenceCategory
