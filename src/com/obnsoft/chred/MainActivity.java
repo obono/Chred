@@ -256,13 +256,13 @@ public class MainActivity extends TabActivity {
         switch (mApp.mEnameModePtc) {
         case MyApplication.ENAME_MODE_EVERY:
             final EditText et = new EditText(this, null, R.attr.editTextEnameStyle);
-            OnClickListener l = new OnClickListener() {
+            OnClickListener cl = new OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
                     executeExportToFile(requestCode, path, et.getText().toString());
                 }
             };
-            Utils.showCustomDialog(this, R.drawable.ic_file, R.string.msg_ename, et, l);
+            Utils.showCustomDialog(this, R.drawable.ic_file, R.string.msg_ename, et, cl);
             break;
         case MyApplication.ENAME_MODE_GUESS:
             executeExportToFile(requestCode, path, guessEmbedName(path));
@@ -322,16 +322,16 @@ public class MainActivity extends TabActivity {
     }
 
     private void confirmExportToQRCodes(final int menuId) {
-        switch (mApp.mEnameModePtc) {
+        switch (mApp.mEnameModeQr) {
         case MyApplication.ENAME_MODE_EVERY:
             final EditText et = new EditText(this, null, R.attr.editTextEnameStyle);
-            OnClickListener l = new OnClickListener() {
+            OnClickListener cl = new OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
                     executeExportToQRCodes(menuId, et.getText().toString());
                 }
             };
-            Utils.showCustomDialog(this, R.drawable.ic_file, R.string.msg_ename, et, l);
+            Utils.showCustomDialog(this, R.drawable.ic_file, R.string.msg_ename, et, cl);
             break;
         case MyApplication.ENAME_MODE_CONST:
             executeExportToQRCodes(menuId, mApp.mEname);
