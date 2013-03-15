@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
-    <PreferenceCategory
-        android:title="@string/prefs_ename"
-        >
+
+    <PreferenceCategory android:title="@string/prefs_ename">
         <ListPreference
             android:key="ename_ptc"
             android:defaultValue="const"
@@ -21,16 +20,20 @@
             />
         <EditTextPreference
             android:key="ename"
-            android:defaultValue="ANDROID"
+            android:defaultValue="@string/ename_default"
             android:title="@string/prefs_ename_preset"
             android:dialogTitle="@string/msg_ename"
             android:dialogIcon="@drawable/ic_file"
             style="@style/MyEditTextEname"
             />
     </PreferenceCategory>
-    <PreferenceCategory
-        android:title="@string/prefs_other"
-        >
+
+    <PreferenceCategory android:title="@string/prefs_other">
+        <CheckBoxPreference
+            android:key="tight"
+            android:title="@string/prefs_tight"
+            android:summary="@string/prefs_tight_sub"
+            />
         <com.obnsoft.chred.VersionPreference
             android:key="about"
             android:persistent="false"
@@ -40,4 +43,5 @@
             android:negativeButtonText="@null"
             />
     </PreferenceCategory>
+
 </PreferenceScreen>

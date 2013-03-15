@@ -15,6 +15,7 @@
     <style name="MyEditTextEname" parent="android:Widget.EditText">
         <item name="android:digits">0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_</item>
         <item name="android:maxLength">8</item>
+        <item name="android:hint">@string/ename_default</item>
         <item name="android:singleLine">true</item>
         <item name="android:inputType">textCapCharacters|textNoSuggestions|textVisiblePassword</item>
     </style>

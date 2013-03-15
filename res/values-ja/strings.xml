@@ -25,6 +25,8 @@
     <string name="prefs_ename_qr">QRコード作成時</string>
     <string name="prefs_ename_preset">プリセット名</string>
     <string name="prefs_other">その他</string>
+    <string name="prefs_tight">QRコードの枚数を減らす</string>
+    <string name="prefs_tight_sub">その分、エラー訂正が弱くなります</string>
     <string name="prefs_version">バージョン情報</string>
     <string name="msg_newfilename">ファイル名を入力</string>
     <string name="msg_ename">埋め込むファイル名を入力\n(大文字英数字のみ)</string>

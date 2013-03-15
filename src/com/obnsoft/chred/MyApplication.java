@@ -45,6 +45,7 @@ public class MyApplication extends Application {
     public String mEname;
     public int mEnameModePtc;
     public int mEnameModeQr;
+    public boolean mTightQr;
 
     public ChrData mChrData;
     public ColData mColData;
@@ -61,6 +62,7 @@ public class MyApplication extends Application {
     private static final String PREF_KEY_ENAME = "ename";
     private static final String PREF_KEY_ENAME_PTC = "ename_ptc";
     private static final String PREF_KEY_ENAME_QR = "ename_qr";
+    private static final String PREF_KEY_TIGHT = "tight";
     private static final String ENAME_MODE_STRS[] = { "every", "guess", "const" };
 
     /*-----------------------------------------------------------------------*/
@@ -112,7 +114,7 @@ public class MyApplication extends Application {
         mColIdx = prefs.getInt(PREF_KEY_COL, 0);
         mCurTab = prefs.getString(PREF_KEY_TAB, null);
         mChrData.setTargetSize(prefs.getInt(PREF_KEY_HUNITS, 2), prefs.getInt(PREF_KEY_VUNITS, 2));
-        setEnamePolicy(prefs);
+        getPrefsInSetting(prefs);
     }
 
     public void saveData() {
@@ -149,10 +151,11 @@ public class MyApplication extends Application {
         }
     }
 
-    public void setEnamePolicy(SharedPreferences prefs) {
+    public void getPrefsInSetting(SharedPreferences prefs) {
         mEname = prefs.getString(PREF_KEY_ENAME, ENAME_DEFAULT);
         mEnameModePtc = getEnameModeVal(prefs.getString(PREF_KEY_ENAME_PTC, "const"));
         mEnameModeQr = getEnameModeVal(prefs.getString(PREF_KEY_ENAME_QR, "const"));
+        mTightQr = prefs.getBoolean(PREF_KEY_TIGHT, false);
     }
 
     private int getEnameModeVal(String modeStr) {

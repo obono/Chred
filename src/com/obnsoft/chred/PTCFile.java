@@ -45,8 +45,8 @@ public class PTCFile {
             {'P', 'E', 'T', 'I', 'T', 'C', 'O', 'M'};
 
     private static final int QR_CAPACITY_20_M = 666;
-    //private static final int QR_CAPACITY_20_L = 858;
-    private static final int QR_SIZE = 190; // 95*2
+    private static final int QR_CAPACITY_20_L = 858;
+    private static final int QR_SIZE = 190; // double of 95 (Ver20 QR size)
     private static final int QR_MARGIN = 16;
     private static final int QR_PADDING = 32;
     private static final int QR_STEP = QR_SIZE + QR_MARGIN * 2;
@@ -103,8 +103,8 @@ public class PTCFile {
         return save(out, mName, mType, mData);
     }
 
-    public Bitmap generateQRCodes(String footer) {
-        return generateQRCodes(getName(), getData(), footer);
+    public Bitmap generateQRCodes(boolean isTight, String footer) {
+        return generateQRCodes(getName(), getData(), isTight, footer);
     }
 
     public void clear() {
@@ -146,7 +146,7 @@ public class PTCFile {
         return true;
     }
 
-    public static Bitmap generateQRCodes(String name, byte[] data, String footer) {
+    public static Bitmap generateQRCodes(String name, byte[] data, boolean isTight, String footer) {
         byte[] cmprsData = compressData(name, data);
         if (cmprsData == null) {
             return null;
@@ -154,14 +154,14 @@ public class PTCFile {
 
         /*  Prepare for processing data  */
         byte[] md5 = getMD5(cmprsData);
-        byte[] qrData = new byte[QR_CAPACITY_20_M];
+        byte[] qrData = new byte[isTight ? QR_CAPACITY_20_L : QR_CAPACITY_20_M];
         int dataUnit = qrData.length - 36;
         int qrCount = (int) Math.ceil(cmprsData.length / (double) dataUnit);
         byte[] partData = new byte[dataUnit];
         Qrcode qrBuilder = new Qrcode();
         qrBuilder.setQrcodeVersion(20);
         qrBuilder.setQrcodeEncodeMode('B');
-        qrBuilder.setQrcodeErrorCorrect('L');
+        qrBuilder.setQrcodeErrorCorrect(isTight ? 'L' : 'M');
 
         /*  Prepare bitmap  */
         int qw = (int) Math.ceil(Math.sqrt(qrCount));

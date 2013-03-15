@@ -47,7 +47,7 @@ public class SettingActivity extends PreferenceActivity
         super.onPause();
         SharedPreferences prefs = getPreferenceScreen().getSharedPreferences();
         prefs.unregisterOnSharedPreferenceChangeListener(this);
-        ((MyApplication) getApplication()).setEnamePolicy(prefs);
+        ((MyApplication) getApplication()).getPrefsInSetting(prefs);
     }
 
     @Override
