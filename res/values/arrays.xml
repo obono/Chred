@@ -20,7 +20,7 @@
         <item>Guess from file name</item>
         <item>Use preset always</item>
     </string-array>
-    <string-array name="ptcname_entryvalues">
+    <string-array name="ptcname_entryvalues" translatable="false">
         <item>every</item>
         <item>guess</item>
         <item>const</item>
@@ -30,7 +30,7 @@
         <item>Enter every time</item>
         <item>Use preset always</item>
     </string-array>
-    <string-array name="qrname_entryvalues">
+    <string-array name="qrname_entryvalues" translatable="false">
         <item>every</item>
         <item>const</item>
     </string-array>

@@ -8,7 +8,7 @@
     <string name="size">Size</string>
     <string name="view">View</string>
     <string name="share">Share</string>
-    <string name="ename_default">ANDROID</string>
+    <string name="ename_default" translatable="false">ANDROID</string>
     <string name="title_import">Load PTC file</string>
     <string name="title_export_chr">Save CHR data to PTC file</string>
     <string name="title_export_col">Save COL data to PTC file</string>
