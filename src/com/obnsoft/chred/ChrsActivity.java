@@ -24,11 +24,16 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.os.Bundle;
+import android.view.ContextMenu;
+import android.view.ContextMenu.ContextMenuInfo;
 import android.view.Gravity;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
+import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.AdapterView.OnItemSelectedListener;
 import android.widget.BaseAdapter;
@@ -183,13 +188,53 @@ public class ChrsActivity extends Activity implements OnItemSelectedListener {
             mGridView.setSelection(mApp.mChrIdx / mChrStep);
         }
         super.onResume();
+        registerForContextMenu(mGridView);
     }
 
     @Override
     protected void onPause() {
+        unregisterForContextMenu(mGridView);
         super.onPause();
         mBitmap.recycle();
         mBitmap = null;
+    }
+
+    @Override
+    public void onCreateContextMenu(ContextMenu menu, View view,
+            ContextMenuInfo menuInfo) {
+        AdapterContextMenuInfo info = (AdapterContextMenuInfo) menuInfo;
+        int tgtIdx = (int) mAdapter.getItemId(info.position);
+        if (view == mGridView && tgtIdx != mApp.mChrIdx) {
+            menu.setHeaderTitle(String.format("Chara #%d", tgtIdx));
+            menu.add(Menu.NONE, 100, Menu.NONE, String.format("Swap for #%d", mApp.mChrIdx));
+            menu.add(Menu.NONE, 110, Menu.NONE,
+                    String.format("Move #%d here and shift", mApp.mChrIdx));
+        }
+        super.onCreateContextMenu(menu, view, menuInfo);
+    }
+
+    @Override
+    public boolean onContextItemSelected(MenuItem item) {
+        boolean ret = false;
+        AdapterContextMenuInfo info = (AdapterContextMenuInfo) item.getMenuInfo();
+        int tgtIdx = (int) mAdapter.getItemId(info.position);
+        switch (item.getItemId()) {
+        case 100:
+            mApp.mChrData.swapChrs(mApp.mChrIdx, tgtIdx, mChrStep);
+            ret = true;
+            break;
+        case 110:
+            mApp.mChrData.moveChrs(mApp.mChrIdx, tgtIdx, mChrStep);
+            ret = true;
+            break;
+        }
+        if (ret) {
+            drawChrsBitmap();
+            mGridView.setSelection(info.position);
+            mApp.mChrIdx = (int) tgtIdx;
+            mAdapter.notifyDataSetChanged();
+        }
+        return ret;
     }
 
     /*-----------------------------------------------------------------------*/

@@ -19,12 +19,16 @@ package com.obnsoft.chred;
 import android.content.Context;
 import android.graphics.Paint;
 import android.util.AttributeSet;
+import android.view.ContextMenu.ContextMenuInfo;
+import android.view.View;
+import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.LinearLayout;
 
 public class PaletteView extends LinearLayout {
 
     private Paint mPaint = new Paint();
     private ColorView[] mColViews = new ColorView[ColData.COLS_PER_PAL];
+    private AdapterContextMenuInfo mContextMenuInfo;
 
     /*-----------------------------------------------------------------------*/
 
@@ -55,6 +59,33 @@ public class PaletteView extends LinearLayout {
             mColViews[i].setOnClickListener(l);
         }
     }
+
+    @Override
+    public void setOnCreateContextMenuListener(OnCreateContextMenuListener l) {
+        super.setOnCreateContextMenuListener(l);
+        OnLongClickListener ll = null;
+        if (l != null) {
+            ll = new OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View v) {
+                    int idx = ((ColorView) v).getIndex();
+                    mContextMenuInfo = new AdapterContextMenuInfo(v, idx, idx);
+                    PaletteView.this.showContextMenu();
+                    return true;
+                }
+            };
+        }
+        for (int i = 0; i < mColViews.length; i++) {
+            mColViews[i].setOnLongClickListener(ll);
+        }
+    }
+
+    @Override
+    protected ContextMenuInfo getContextMenuInfo() {
+        return mContextMenuInfo;
+    }
+
+    /*-----------------------------------------------------------------------*/
 
     public void setPalette(ColData colData, int palIdx) {
         for (int i = 0; i < mColViews.length; i++) {

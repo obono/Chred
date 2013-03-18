@@ -156,6 +156,35 @@ public class ChrData {
         }
     }
 
+    public void swapChrs(int src, int dest, int len) {
+        if (src < 0 || src + len > MAX_CHARS || dest < 0 || dest + len > MAX_CHARS) return;
+        ChrUnit tmp;
+        for (int i = 0; i < len; i++) {
+            tmp = mChrs[src + i];
+            mChrs[src + i] = mChrs[dest + i];
+            mChrs[dest + i] = tmp;
+        }
+        mDirty = true;
+    }
+
+    public void moveChrs(int src, int dest, int len) {
+        if (src < 0 || src + len > MAX_CHARS || dest < 0 || dest + len > MAX_CHARS) return;
+        ChrUnit[] tmp = new ChrUnit[len];
+        for (int i = 0; i < len; i++) {
+            tmp[i] = mChrs[src + i];
+        }
+        int direction = (src < dest) ? 1 : -1;
+        int offset = (src < dest) ? 0 : len - 1;
+        while (src != dest) {
+            mChrs[src + offset] = mChrs[src + len * direction + offset];
+            src += direction;
+        }
+        for (int i = 0; i < len; i++) {
+            mChrs[src + i] = tmp[i];
+        }
+        mDirty = true;
+    }
+
     /*-----------------------------------------------------------------------*/
 
     public byte[] serialize() {

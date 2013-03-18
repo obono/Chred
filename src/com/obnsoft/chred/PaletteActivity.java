@@ -23,9 +23,14 @@ import android.app.Activity;
 import android.graphics.Bitmap;
 import android.graphics.Paint;
 import android.os.Bundle;
+import android.view.ContextMenu;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
+import android.view.ContextMenu.ContextMenuInfo;
 import android.view.View.OnClickListener;
 import android.widget.AdapterView;
+import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.AdapterView.OnItemSelectedListener;
 import android.widget.Spinner;
 
@@ -82,14 +87,61 @@ public class PaletteActivity extends Activity implements OnItemSelectedListener,
         mColView = mPalView.getColorView(mApp.mColIdx);
         mColPicker.setColor(mApp.mColData.getColor(mApp.mPalIdx, mApp.mColIdx));
         super.onResume();
+        registerForContextMenu(mPalView);
     }
 
     @Override
     protected void onPause() {
+        unregisterForContextMenu(mPalView);
         super.onPause();
         mPreView.setBitmap(null);
         mBitmap.recycle();
         mBitmap = null;
+    }
+
+    @Override
+    public void onCreateContextMenu(ContextMenu menu, View view,
+            ContextMenuInfo menuInfo) {
+        AdapterContextMenuInfo info = (AdapterContextMenuInfo) menuInfo;
+        int col = info.position;
+        if (view == mPalView && col != mApp.mColIdx) {
+            menu.setHeaderTitle(String.format("Color #%d", col));
+            menu.add(Menu.NONE, 100, Menu.NONE, String.format("Swap for #%d", mApp.mColIdx));
+            menu.add(Menu.NONE, 110, Menu.NONE,
+                    String.format("Move #%d here and shift", mApp.mColIdx));
+            menu.add(Menu.NONE, 120, Menu.NONE, "Make gradient");
+        }
+        super.onCreateContextMenu(menu, view, menuInfo);
+    }
+
+    @Override
+    public boolean onContextItemSelected(MenuItem item) {
+        boolean ret = false;
+        AdapterContextMenuInfo info = (AdapterContextMenuInfo) item.getMenuInfo();
+        int col = info.position;
+        switch (item.getItemId()) {
+        case 100:
+            mApp.mColData.swapColors(mApp.mPalIdx, mApp.mColIdx, col);
+            ret = true;
+            break;
+        case 110:
+            mApp.mColData.moveColors(mApp.mPalIdx, mApp.mColIdx, col);
+            ret = true;
+            break;
+        case 120:
+            mApp.mColData.gradiantColors(mApp.mPalIdx, mApp.mColIdx, col);
+            ret = true;
+            break;
+        }
+        if (ret) {
+            mApp.mColIdx = col;
+            mPalView.setPalette(mApp.mColData, mApp.mPalIdx);
+            mPalView.setSelection(col);
+            mColView = mPalView.getColorView(col);
+            mColPicker.setColor(mApp.mColData.getColor(mApp.mPalIdx, col));
+            updatePreview();
+        }
+        return ret;
     }
 
     /*-----------------------------------------------------------------------*/

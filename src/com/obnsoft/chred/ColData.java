@@ -60,6 +60,44 @@ public class ColData {
         mDirty = true;
     }
 
+    public void swapColors(int pal, int src, int dest) {
+        int tmp = getColor(pal, src);
+        setColor(pal, src, getColor(pal, dest));
+        setColor(pal, dest, tmp);
+        mDirty = true;
+    }
+
+    public void moveColors(int pal, int src, int dest) {
+        int tmp = getColor(pal, src);
+        int direction = (src < dest) ? 1 : -1;
+        while (src != dest) {
+            setColor(pal, src, getColor(pal, src + direction));
+            src += direction;
+        }
+        setColor(pal, src, tmp);
+        mDirty = true;
+    }
+
+    public void gradiantColors(int pal, int src, int dest) {
+        if (pal < 0 || pal >= MAX_PALS ||
+                src < 0 || src >= COLS_PER_PAL || dest < 0 || dest >= COLS_PER_PAL) return;
+        int srcCol = getColor(pal, src);
+        int destCol = getColor(pal,dest);
+        int sr = Color.red(srcCol);
+        int sg = Color.green(srcCol);
+        int sb = Color.blue(srcCol);
+        int zr = Color.red(destCol) - sr;
+        int zg = Color.green(destCol) - sg;
+        int zb = Color.blue(destCol) - sb;
+        int step = Math.abs(dest - src);
+        int direction = (src < dest) ? 1 : -1;
+        for (int i = 0; src != dest; i++, src += direction) {
+            setColor(pal, src, Color.rgb(
+                    sr + zr * i / step, sg + zg * i / step, sb + zb * i / step));
+        }
+        mDirty = true;
+    }
+
     public static int bits5To8(int val) {
         return val << 3 | val >> 2;
     }
