@@ -20,6 +20,11 @@
     <string name="menu_export_qr_chr">CHRデータをQRコードに変換</string>
     <string name="menu_export_qr_col">COLデータをQRコードに変換</string>
     <string name="menu_prefs">設定</string>
+    <string name="menu_operation">操作</string>
+    <string name="menu_swap">%d番と入れ替える</string>
+    <string name="menu_move">%d番をここに移動</string>
+    <string name="menu_copy">%d番をここにコピー</string>
+    <string name="menu_gradient">グラデーション作成</string>
     <string name="prefs_ename">埋め込むファイル名</string>
     <string name="prefs_ename_ptc">PTCファイル保存時</string>
     <string name="prefs_ename_qr">QRコード作成時</string>

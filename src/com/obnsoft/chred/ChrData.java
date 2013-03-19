@@ -40,7 +40,20 @@ public class ChrData {
 
     public class ChrUnit {
 
-        private byte[] mDots = new byte[UNIT_SIZE * UNIT_SIZE];
+        private byte[] mDots;
+
+        public ChrUnit() {
+            mDots = new byte[UNIT_SIZE * UNIT_SIZE];
+        }
+
+        private ChrUnit(byte[] data) {
+            mDots = data.clone();
+        }
+
+        @Override
+        public ChrUnit clone() {
+            return new ChrUnit(mDots);
+        }
 
         public int getUnitDot(int x, int y) {
             //if (x < 0 || x >= UNIT_SIZE || y < 0 || y >= UNIT_SIZE) return -1;
@@ -183,6 +196,13 @@ public class ChrData {
             mChrs[src + i] = tmp[i];
         }
         mDirty = true;
+    }
+
+    public void copyChrs(int src, int dest, int len) {
+        if (src < 0 || src + len > MAX_CHARS || dest < 0 || dest + len > MAX_CHARS) return;
+        for (int i = 0; i < len; i++) {
+            mChrs[dest + i] = mChrs[src + i].clone();
+        }
     }
 
     /*-----------------------------------------------------------------------*/

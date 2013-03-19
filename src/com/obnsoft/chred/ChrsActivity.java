@@ -205,12 +205,16 @@ public class ChrsActivity extends Activity implements OnItemSelectedListener {
         AdapterContextMenuInfo info = (AdapterContextMenuInfo) menuInfo;
         int tgtIdx = (int) mAdapter.getItemId(info.position);
         if (view == mGridView && tgtIdx != mApp.mChrIdx) {
-            menu.setHeaderTitle(String.format("Chara #%d", tgtIdx));
-            menu.add(Menu.NONE, 100, Menu.NONE, String.format("Swap for #%d", mApp.mChrIdx));
-            menu.add(Menu.NONE, 110, Menu.NONE,
-                    String.format("Move #%d here and shift", mApp.mChrIdx));
+            menu.setHeaderTitle(R.string.menu_operation);
+            onCreateContextMenuAddMenu(menu, R.id.menu_swap, R.string.menu_swap);
+            onCreateContextMenuAddMenu(menu, R.id.menu_move, R.string.menu_move);
+            onCreateContextMenuAddMenu(menu, R.id.menu_copy, R.string.menu_copy);
         }
         super.onCreateContextMenu(menu, view, menuInfo);
+    }
+
+    private void onCreateContextMenuAddMenu(ContextMenu menu, int menuId, int strId) {
+        menu.add(Menu.NONE, menuId, Menu.NONE, String.format(getString(strId), mApp.mChrIdx));
     }
 
     @Override
@@ -219,12 +223,16 @@ public class ChrsActivity extends Activity implements OnItemSelectedListener {
         AdapterContextMenuInfo info = (AdapterContextMenuInfo) item.getMenuInfo();
         int tgtIdx = (int) mAdapter.getItemId(info.position);
         switch (item.getItemId()) {
-        case 100:
+        case R.id.menu_swap:
             mApp.mChrData.swapChrs(mApp.mChrIdx, tgtIdx, mChrStep);
             ret = true;
             break;
-        case 110:
+        case R.id.menu_move:
             mApp.mChrData.moveChrs(mApp.mChrIdx, tgtIdx, mChrStep);
+            ret = true;
+            break;
+        case R.id.menu_copy:
+            mApp.mChrData.copyChrs(mApp.mChrIdx, tgtIdx, mChrStep);
             ret = true;
             break;
         }

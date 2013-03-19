@@ -105,13 +105,17 @@ public class PaletteActivity extends Activity implements OnItemSelectedListener,
         AdapterContextMenuInfo info = (AdapterContextMenuInfo) menuInfo;
         int col = info.position;
         if (view == mPalView && col != mApp.mColIdx) {
-            menu.setHeaderTitle(String.format("Color #%d", col));
-            menu.add(Menu.NONE, 100, Menu.NONE, String.format("Swap for #%d", mApp.mColIdx));
-            menu.add(Menu.NONE, 110, Menu.NONE,
-                    String.format("Move #%d here and shift", mApp.mColIdx));
-            menu.add(Menu.NONE, 120, Menu.NONE, "Make gradient");
+            menu.setHeaderTitle(R.string.menu_operation);
+            onCreateContextMenuAddMenu(menu, R.id.menu_swap, R.string.menu_swap);
+            onCreateContextMenuAddMenu(menu, R.id.menu_move, R.string.menu_move);
+            onCreateContextMenuAddMenu(menu, R.id.menu_copy, R.string.menu_copy);
+            onCreateContextMenuAddMenu(menu, R.id.menu_gradient, R.string.menu_gradient);
         }
         super.onCreateContextMenu(menu, view, menuInfo);
+    }
+
+    private void onCreateContextMenuAddMenu(ContextMenu menu, int menuId, int strId) {
+        menu.add(Menu.NONE, menuId, Menu.NONE, String.format(getString(strId), mApp.mColIdx));
     }
 
     @Override
@@ -120,15 +124,19 @@ public class PaletteActivity extends Activity implements OnItemSelectedListener,
         AdapterContextMenuInfo info = (AdapterContextMenuInfo) item.getMenuInfo();
         int col = info.position;
         switch (item.getItemId()) {
-        case 100:
+        case R.id.menu_swap:
             mApp.mColData.swapColors(mApp.mPalIdx, mApp.mColIdx, col);
             ret = true;
             break;
-        case 110:
+        case R.id.menu_move:
             mApp.mColData.moveColors(mApp.mPalIdx, mApp.mColIdx, col);
             ret = true;
             break;
-        case 120:
+        case R.id.menu_copy:
+            mApp.mColData.copyColors(mApp.mPalIdx, mApp.mColIdx, col);
+            ret = true;
+            break;
+        case R.id.menu_gradient:
             mApp.mColData.gradiantColors(mApp.mPalIdx, mApp.mColIdx, col);
             ret = true;
             break;

@@ -23,6 +23,11 @@
     <string name="menu_export_qr_chr">CHR data to QR code</string>
     <string name="menu_export_qr_col">COL data to QR code</string>
     <string name="menu_prefs">Preferences</string>
+    <string name="menu_operation">Operation</string>
+    <string name="menu_swap">Swap #%d for this</string>
+    <string name="menu_move">Move #%d here and shift</string>
+    <string name="menu_copy">Copy #%d here</string>
+    <string name="menu_gradient">Make gradient</string>
     <string name="prefs_ename">File name to embed</string>
     <string name="prefs_ename_ptc">For PTC file</string>
     <string name="prefs_ename_qr">For QR code</string>

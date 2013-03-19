@@ -78,6 +78,10 @@ public class ColData {
         mDirty = true;
     }
 
+    public void copyColors(int pal, int src, int dest) {
+        setColor(pal, dest, getColor(pal, src));
+    }
+
     public void gradiantColors(int pal, int src, int dest) {
         if (pal < 0 || pal >= MAX_PALS ||
                 src < 0 || src >= COLS_PER_PAL || dest < 0 || dest >= COLS_PER_PAL) return;
