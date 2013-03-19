@@ -203,6 +203,7 @@ public class ChrData {
         for (int i = 0; i < len; i++) {
             mChrs[dest + i] = mChrs[src + i].clone();
         }
+        mDirty = true;
     }
 
     /*-----------------------------------------------------------------------*/
