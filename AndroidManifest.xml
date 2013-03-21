@@ -28,6 +28,7 @@
         <activity android:name=".PaletteActivity" />
         <activity android:name=".MyFilePickerActivity" />
         <activity android:name=".SettingActivity" />
+        <activity android:name=".ScanQRActivity" />
     </application>
 
 </manifest>

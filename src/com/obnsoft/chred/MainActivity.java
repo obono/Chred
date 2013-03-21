@@ -55,7 +55,7 @@ public class MainActivity extends TabActivity {
     };
 
     private static final int REQUEST_ID_IMPORT_FILE = 1;
-    //private static final int REQUEST_ID_IMPORT_GALLERY = 2;
+    private static final int REQUEST_ID_IMPORT_GALLERY = 2;
     //private static final int REQUEST_ID_IMPORT_CAMERA = 3;
     private static final int REQUEST_ID_EXPORT_CHR = 11;
     private static final int REQUEST_ID_EXPORT_COL = 12;
@@ -110,6 +110,10 @@ public class MainActivity extends TabActivity {
         switch (menuId) {
         case R.id.menu_import_file:
             requestFileToImport();
+            return true;
+        case R.id.menu_import_gallery:
+            startActivityForResult(
+                    new Intent(this, ScanQRActivity.class), REQUEST_ID_IMPORT_GALLERY);
             return true;
         case R.id.menu_import_preset:
             selectPresetToImport();

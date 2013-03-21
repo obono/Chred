@@ -17,6 +17,9 @@
 package com.obnsoft.chred;
 
 import java.io.File;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
 
 import android.app.AlertDialog;
 import android.content.ActivityNotFoundException;
@@ -64,6 +67,51 @@ public class Utils {
             len--;
         }
         return (st > 0 || len < s.length()) ? s.substring(st, len) : s;
+    }
+
+    /*-----------------------------------------------------------------------*/
+
+    public static byte[] getMD5(byte[] data) {
+        byte[] md5 = null;
+        try {
+            MessageDigest digest;
+            digest = MessageDigest.getInstance("MD5");
+            md5 = digest.digest(data);
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        }
+        return md5;
+    }
+
+    public static String extractString(byte[] data, int start, int len) {
+        StringBuffer buf = new StringBuffer();
+        for (int i = 0; i < len; i++) {
+            char c = (char) data[start + i];
+            if (c >= 'a') c -= 0x20;
+            if (c >= '0' && c <= '9' || c >= 'A' && c <= 'Z' || c == '_') buf.append(c);
+        }
+        return buf.toString();
+    }
+
+    public static void embedString(byte[] data, int start, int len, String str) {
+        Arrays.fill(data, start, start + len, (byte) 0);
+        System.arraycopy(str.getBytes(), 0, data, start,
+                (str.length() > len) ? len : str.length());
+    }
+
+    public static int extractValue(byte[] data, int start, int len) {
+        int val = 0;
+        for (int i = 0; i < len; i++) {
+            val |= (data[start + i] & 0xFF) << i * 8;
+        }
+        return val;
+    }
+
+    public static void embedValue(byte[] ary, int start, int len, int val) {
+        for (int i = 0; i < len; i++) {
+            ary[start + i] = (byte) (val & 0xFF);
+            val >>= 8;
+        }
     }
 
     /*-----------------------------------------------------------------------*/

@@ -19,8 +19,6 @@ package com.obnsoft.chred;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Locale;
 import java.util.zip.Deflater;
@@ -79,11 +77,11 @@ public class PTCFile {
         clear();
         try {
             in.read(header);
-            if (!PTC_ID.equals(extractString(header, 0, 4))) {
+            if (!PTC_ID.equals(Utils.extractString(header, 0, 4))) {
                 return false;
             }
             in.read(md5);
-            mData = new byte[extractValue(header, 4, 4)];
+            mData = new byte[Utils.extractValue(header, 4, 4)];
             in.read(mData);
             if (!Arrays.equals(md5, getPetitcomMD5(mData))) {
                 clear();
@@ -94,8 +92,8 @@ public class PTCFile {
             clear();
             return false;
         }
-        mType = extractValue(header, 8, 4);
-        mName = extractString(header, 12, 8);
+        mType = Utils.extractValue(header, 8, 4);
+        mName = Utils.extractString(header, 12, 8);
         return true;
     }
 
@@ -130,10 +128,10 @@ public class PTCFile {
             return false;
         }
         byte[] header = new byte[20];
-        embedString(header, 0, 4, PTC_ID);
-        embedValue(header, 4, 4, data.length);
-        embedValue(header, 8, 4, type);
-        embedString(header, 12, 8, name);
+        Utils.embedString(header, 0, 4, PTC_ID);
+        Utils.embedValue(header, 4, 4, data.length);
+        Utils.embedValue(header, 8, 4, type);
+        Utils.embedString(header, 12, 8, name);
         byte[] md5 = getPetitcomMD5(data);
         try {
             out.write(header);
@@ -153,7 +151,7 @@ public class PTCFile {
         }
 
         /*  Prepare for processing data  */
-        byte[] md5 = getMD5(cmprsData);
+        byte[] md5 = Utils.getMD5(cmprsData);
         byte[] qrData = new byte[isTight ? QR_CAPACITY_20_L : QR_CAPACITY_20_M];
         int dataUnit = qrData.length - 36;
         int qrCount = (int) Math.ceil(cmprsData.length / (double) dataUnit);
@@ -180,7 +178,7 @@ public class PTCFile {
         }
         paint.setColor(Color.BLACK);
         paint.setTextSize(24);
-        String lbl = extractString(cmprsData, 9, 3).concat(":").concat(name);
+        String lbl = Utils.extractString(cmprsData, 9, 3).concat(":").concat(name);
         canvas.drawText(lbl, (bmp.getWidth() - paint.measureText(lbl)) / 2, QR_PADDING, paint);
         int qx = QR_MARGIN + QR_PADDING;
         int qy = QR_MARGIN + QR_PADDING;
@@ -196,10 +194,10 @@ public class PTCFile {
                 qrData = new byte[len + 36];
             }
             System.arraycopy(cmprsData, i * dataUnit, partData, 0, len);
-            byte[] md5each = getMD5(partData);
-            embedString(qrData, 0, 2, PTCQR_ID);
-            embedValue(qrData, 2, 1, i + 1);
-            embedValue(qrData, 3, 1, qrCount);
+            byte[] md5each = Utils.getMD5(partData);
+            Utils.embedString(qrData, 0, 2, PTCQR_ID);
+            Utils.embedValue(qrData, 2, 1, i + 1);
+            Utils.embedValue(qrData, 3, 1, qrCount);
             System.arraycopy(md5each, 0, qrData, 4, 16);
             System.arraycopy(md5, 0, qrData, 20, 16);
             System.arraycopy(partData, 0, qrData, 36, len);
@@ -230,25 +228,11 @@ public class PTCFile {
         return bmp;
     }
 
-    /*-----------------------------------------------------------------------*/
-
-    private static byte[] getMD5(byte[] data) {
-        byte[] md5 = null;
-        try {
-            MessageDigest digest;
-            digest = MessageDigest.getInstance("MD5");
-            md5 = digest.digest(data);
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
-        }
-        return md5;
-    }
-
     private static byte[] getPetitcomMD5(byte[] data) {
         byte[] work = new byte[MD5EXTRA.length + data.length];
         System.arraycopy(MD5EXTRA, 0, work, 0, MD5EXTRA.length);
         System.arraycopy(data, 0, work, MD5EXTRA.length, data.length);
-        return getMD5(work);
+        return Utils.getMD5(work);
     }
 
     private static byte[] compressData(String strName, byte[] orgData) {
@@ -260,47 +244,17 @@ public class PTCFile {
         compresser.setInput(orgData);
         compresser.finish();
         int len = compresser.deflate(work);
+        compresser.end();
         if (len > 0 && len < work.length - 1) {
             byte[] data = new byte[20 + len];
-            embedString(data, 0, 8, strName);
+            Utils.embedString(data, 0, 8, strName);
             System.arraycopy(orgData, 8, data, 8, 4); // "R***"
-            embedValue(data, 12, 4, len);
-            embedValue(data, 16, 4, orgData.length);
+            Utils.embedValue(data, 12, 4, len);
+            Utils.embedValue(data, 16, 4, orgData.length);
             System.arraycopy(work, 0, data, 20, len);
             return data;
         }
         return null;
-    }
-
-    private static String extractString(byte[] data, int start, int len) {
-        StringBuffer buf = new StringBuffer();
-        for (int i = 0; i < len; i++) {
-            char c = (char) data[start + i];
-            if (c >= 'a') c -= 0x20;
-            if (c >= '0' && c <= '9' || c >= 'A' && c <= 'Z' || c == '_') buf.append(c);
-        }
-        return buf.toString();
-    }
-
-    private static void embedString(byte[] data, int start, int len, String str) {
-        Arrays.fill(data, start, start + len, (byte) 0);
-        System.arraycopy(str.getBytes(), 0, data, start,
-                (str.length() > len) ? len : str.length());
-    }
-
-    private static int extractValue(byte[] data, int start, int len) {
-        int val = 0;
-        for (int i = 0; i < len; i++) {
-            val |= (data[start + i] & 0xFF) << i * 8;
-        }
-        return val;
-    }
-
-    private static void embedValue(byte[] ary, int start, int len, int val) {
-        for (int i = 0; i < len; i++) {
-            ary[start + i] = (byte) (val & 0xFF);
-            val >>= 8;
-        }
     }
 
 }
