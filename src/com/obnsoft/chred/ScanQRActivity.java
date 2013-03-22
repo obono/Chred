@@ -18,6 +18,7 @@ package com.obnsoft.chred;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
 import java.util.zip.DataFormatException;
 import java.util.zip.Inflater;
 
@@ -26,6 +27,7 @@ import com.obnsoft.view.MagnifyView;
 import jp.sourceforge.qrcode.QRCodeDecoder;
 import jp.sourceforge.qrcode.data.QRCodeImage;
 import jp.sourceforge.qrcode.exception.DecodingFailedException;
+import jp.sourceforge.qrcode.util.DebugCanvasAdapter;
 import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -49,7 +51,8 @@ public class ScanQRActivity extends Activity {
 
     private static final int REQUEST_ID_CHOOSE_FILE = 1;
     private static final int MSG_EXECSCAN = 1;
-    private static final int MSEC_TIMEOUT_EXECSCAN = 1000;
+    private static final int MSEC_TIMEOUT_EXECSCAN = 500;
+    private static final int HEADLEN_CMPRSDATA = 20;
 
     private int mCurCnt;
     private int mCurLen;
@@ -67,6 +70,8 @@ public class ScanQRActivity extends Activity {
     private QRImageMediator mQrImage;
     private MagnifyView mQrView;
     private View mQrFrame;
+    private TextView mTextMsg;
+    private TextView mTextInfo;
 
     private Handler mTimeoutHandler = new Handler() {
         @Override
@@ -84,31 +89,50 @@ public class ScanQRActivity extends Activity {
     /*-----------------------------------------------------------------------*/
 
     class QRImageMediator implements QRCodeImage {
+        private static final int MAX_SIZE = 768;
+        private static final int MIN_SIZE = 384;
         private int mX, mY, mW, mH;
+        private int mSkip = 1;
+        private int mScale = 1;
         public void setTargetArea(int x, int y, int w, int h) {
             mX = x;
             mY = y;
             mW = w;
             mH = h;
+            mSkip = 1;
+            mScale = 1;
+            while (getWidth() > MAX_SIZE || getHeight() > MAX_SIZE) {
+                mSkip++;
+            }
+            while (getWidth() < MIN_SIZE && getHeight() < MIN_SIZE) {
+                mScale++;
+            }
         }
         @Override
         public int getWidth() {
-            return mW;
+            return mW * mScale / mSkip;
         }
         @Override
         public int getHeight() {
-            return mH;
+            return mH * mScale / mSkip;
         }
         @Override
         public int getPixel(int x, int y) {
-            x += mX;
-            y += mY;
+            x = x * mSkip / mScale + mX;
+            y = y * mSkip / mScale + mY;
             if (mBitmap != null && x >= 0 && y >= 0 &&
                     x < mBitmap.getWidth() && y < mBitmap.getHeight()) {
-                return mBitmap.getPixel(x, y) & 0xFFFFFF;
+                return mBitmap.getPixel(x, y);
             } else {
-                return 0;
+                return Color.BLACK;
             }
+        }
+    }
+
+    class MyDebugCanvas extends DebugCanvasAdapter {
+        @Override
+        public void println(String s) {
+            Log.d("CHRED", s);
         }
     }
 
@@ -118,46 +142,45 @@ public class ScanQRActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.scanqr);
+
         mQrImage = new QRImageMediator();
         mQrView = (MagnifyView) findViewById(R.id.view_qrimage);
         mQrView.setScrollable(true);
-        mQrView.setScaleRange(.125f, 4f);
+        mQrView.setScaleRange(.25f, 4f);
         mQrView.setFrameColor(Color.TRANSPARENT);
         mQrFrame = (View) findViewById(R.id.view_qrframe);
+        mTextMsg = (TextView) findViewById(R.id.text_qrmsg);
+        mTextInfo = (TextView) findViewById(R.id.text_qrinfo);
+
+        mCurCnt = 0;
         mTotalCnt = 0;
+        setInformation();
     }
 
     @Override
     protected void onResume() {
-        if (mUri != null) {
-            try {
-                InputStream in = getContentResolver().openInputStream(mUri);
-                mBitmap = BitmapFactory.decodeStream(in);
-                in.close();
-                mQrView.setBitmap(mBitmap, true);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+        if (mIsOnResult) {
+            mIsOnResult = false;
         } else {
-            if (mIsOnResult) {
-                setCanceledResult();
-            } else {
-                requsetFileFromGallery();
-            }
+            requsetFileFromGallery();
         }
         super.onResume();
-        mIsOnResult = false;
     }
 
     @Override
     protected void onPause() {
-        super.onPause();
         stopTimer();
+        super.onPause();
+    }
+
+    @Override
+    protected void onDestroy() {
         if (mBitmap != null) {
             mQrView.setBitmap(null, true);
             mBitmap.recycle();
             mBitmap = null;
         }
+        super.onDestroy();
     }
 
     @Override
@@ -166,6 +189,21 @@ public class ScanQRActivity extends Activity {
         case REQUEST_ID_CHOOSE_FILE:
             if (resultCode == RESULT_OK) {
                 mUri = intent.getData();
+                if (mUri != null) {
+                    if (mBitmap != null) {
+                        mBitmap.recycle();
+                    }
+                    try {
+                        InputStream in = getContentResolver().openInputStream(mUri);
+                        mBitmap = BitmapFactory.decodeStream(in);
+                        in.close();
+                        mQrView.setBitmap(mBitmap, true);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            } else if (mBitmap == null) {
+                setCanceledResult();
             }
             break;
         }
@@ -221,7 +259,7 @@ public class ScanQRActivity extends Activity {
             return;
         }
         if (qrData.length <= 36 || qrData[0] != 'P' || qrData[1] != 'T') {
-            myLog("Strange data.");
+            myLog(String.format("Strange data. %02x %02x %02x %02x", qrData[0], qrData[1], qrData[2], qrData[3]));
             return; 
         }
         byte[] md5each = new byte[16];
@@ -230,14 +268,14 @@ public class ScanQRActivity extends Activity {
         System.arraycopy(qrData, 4, md5each, 0, 16);
         System.arraycopy(qrData, 20, md5, 0, 16);
         System.arraycopy(qrData, 36, partData, 0, partData.length);
-        if (!md5each.equals(Utils.getMD5(partData))) {
+        if (!Arrays.equals(md5each, Utils.getMD5(partData))) {
             myLog("Hash of this data is wrong.");
             return;
         }
 
         /*  First QR-code  */
         if (mTotalCnt == 0) {
-            if (partData.length <= 20) {
+            if (partData.length <= HEADLEN_CMPRSDATA) {
                 myLog("Strange data as first.");
                 return;
             }
@@ -246,13 +284,13 @@ public class ScanQRActivity extends Activity {
             System.arraycopy(qrData, 20, mMd5All, 0, 16);
             mEname = Utils.extractString(partData, 9, 3).concat(":")
                     .concat(Utils.extractString(partData, 0, 8));
-            mTotalLen = Utils.extractValue(partData, 12, 4);
+            mTotalLen = Utils.extractValue(partData, 12, 4) + HEADLEN_CMPRSDATA;
             mFinalLen = Utils.extractValue(partData, 16, 4);
             mCmprsData = new byte[mTotalLen];
         }
 
         /*  Append data after check  */
-        if (qrData[3] != mTotalCnt || !md5.equals(mMd5All)) {
+        if (qrData[3] != mTotalCnt || !Arrays.equals(md5, mMd5All)) {
             myLog("Unsuitable for current data.");
             return;
         }
@@ -268,23 +306,23 @@ public class ScanQRActivity extends Activity {
         System.arraycopy(partData, 0, mCmprsData, mCurLen, partData.length);
         mCurCnt++;
         mCurLen += partData.length;
-        TextView tv = (TextView) findViewById(R.id.text_qrinfo);
-        tv.setText(String.format("%s (%d/%d)", mEname, mCurCnt, mTotalCnt));
+        setInformation();
 
         /*  Last QR-code  */
-        if (++mCurCnt == mTotalCnt) {
-            if (mCurLen != mTotalLen) {
+        if (mCurCnt == mTotalCnt) {
+            if (mCurLen < mTotalLen) {
                 myLog("Data isn't enough.");
                 setFailedResult();
                 return;
             }
-            if (!md5.equals(Utils.getMD5(mCmprsData))) {
+            if (!Arrays.equals(md5, Utils.getMD5(mCmprsData))) {
                 myLog("Hash of whole data is wrong.");
                 setFailedResult();
                 return;
             }
             Inflater expander = new Inflater();
-            expander.setInput(mCmprsData);
+            expander.setInput(mCmprsData, HEADLEN_CMPRSDATA,
+                    mCmprsData.length - HEADLEN_CMPRSDATA);
             byte[] data = new byte[mFinalLen];
             int finalLen = 0;
             try {
@@ -308,6 +346,7 @@ public class ScanQRActivity extends Activity {
 
     private byte[] scanQR(QRCodeImage image) {
         QRCodeDecoder decoder = new QRCodeDecoder();
+        QRCodeDecoder.setCanvas(new MyDebugCanvas());
         byte[] ret = null;
         myLog("scanQR()");
         try {
@@ -316,6 +355,14 @@ public class ScanQRActivity extends Activity {
             ret = null;
         }
         return ret;
+    }
+
+    private void setInformation() {
+        mTextMsg.setText(String.format(getString(R.string.qr_msg), mCurCnt + 1));
+        if (mTotalCnt > 0) {
+            mTextInfo.setText(String.format("%s(%d/%d)", mEname, mCurCnt, mTotalCnt));
+        }
+
     }
 
     private void setSuccessResult(byte[] data) {
@@ -338,8 +385,6 @@ public class ScanQRActivity extends Activity {
     }
 
     private void myLog(String str) {
-        Log.d("CHRED", str);
-        TextView tv = (TextView) findViewById(R.id.text_qrmsg);
-        tv.setText(str);
+        Log.i("CHRED", str);
     }
 }

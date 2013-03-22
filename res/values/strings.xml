@@ -9,9 +9,12 @@
     <string name="view">View</string>
     <string name="share">Share</string>
     <string name="ename_default" translatable="false">ANDROID</string>
+    <string name="qr_msg">Move #%d QR code into red frame</string>
+    <string name="qr_other">Other image</string>
     <string name="title_import">Load PTC file</string>
     <string name="title_export_chr">Save CHR data to PTC file</string>
     <string name="title_export_col">Save COL data to PTC file</string>
+    <string name="title_scanqr">Scan QR code</string>
     <string name="menu_import">Import</string>
     <string name="menu_import_file">from PTC file</string>
     <string name="menu_import_gallery">QR code in gallery</string>

@@ -22,7 +22,7 @@
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
         android:background="#8000"
-        android:textAppearance="@android:style/TextAppearance.Large"
+        android:textAppearance="@android:style/TextAppearance.Medium"
         />
     <TextView
         android:id="@+id/text_qrinfo"
@@ -30,7 +30,7 @@
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:background="#8000"
-        android:textAppearance="@android:style/TextAppearance.Large"
+        android:textAppearance="@android:style/TextAppearance.Medium"
         />
     <Button
         android:layout_width="wrap_content"

@@ -16,6 +16,7 @@
 
 package com.obnsoft.chred;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -140,6 +141,12 @@ public class MainActivity extends TabActivity {
             if (resultCode == RESULT_OK) {
                 executeImportFromFile(
                         data.getStringExtra(MyFilePickerActivity.INTENT_EXTRA_SELECTPATH));
+            }
+            break;
+        case REQUEST_ID_IMPORT_GALLERY:
+            if (resultCode == RESULT_OK) {
+                confirmImportFromStream(new ByteArrayInputStream(
+                        data.getByteArrayExtra(ScanQRActivity.INTENT_EXTRA_DATA)));
             }
             break;
         case REQUEST_ID_EXPORT_CHR:
