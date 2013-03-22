@@ -22,6 +22,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
+import android.graphics.RectF;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
@@ -30,27 +31,28 @@ import android.view.View;
 
 public class MagnifyView extends View implements OnScaleGestureListener {
 
-    private int     mUnit = 1;
-    private int     mMinUnit = 1;
-    private int     mMaxUnit = 64;
+    private float   mUnit = 1f;
+    private float   mMinUnit = 1f;
+    private float   mMaxUnit = 64f;
     private int     mGridColor = Color.TRANSPARENT;
     private int     mFrameColor = Color.WHITE;
     private boolean mDotted;
     private boolean mScrollable;
 
+    private boolean mIsSmooth;
     private boolean mIsMoving;
     private boolean mIsScaling;
-    private int     mScalingUnit;
+    private float   mScalingUnit;
     private float   mScalingSpan;
-    private int     mFocusX;
-    private int     mFocusY;
-    private int     mFocusUnitX;
-    private int     mFocusUnitY;
+    private float   mFocusX;
+    private float   mFocusY;
+    private float   mFocusUnitX;
+    private float   mFocusUnitY;
 
     private Bitmap  mBitmap;
     private Rect    mWorkRect = new Rect();
     private Rect    mSrcRect = new Rect();
-    private Rect    mDrawRect = new Rect();
+    private RectF   mDrawRect = new RectF();
     private Paint   mPaint = new Paint();
 
     private EventHandler mHandler;
@@ -92,17 +94,17 @@ public class MagnifyView extends View implements OnScaleGestureListener {
         if (mWorkRect.isEmpty()) {
             mWorkRect.set(0, 0, getWidth(), getHeight());
         }
-        int cl = Math.max(mWorkRect.left, mDrawRect.left);
-        int cr = Math.min(mWorkRect.right, mDrawRect.right);
-        int ct = Math.max(mWorkRect.top, mDrawRect.top);
-        int cb = Math.min(mWorkRect.bottom, mDrawRect.bottom);
+        float cl = Math.max(mWorkRect.left, mDrawRect.left);
+        float cr = Math.min(mWorkRect.right, mDrawRect.right);
+        float ct = Math.max(mWorkRect.top, mDrawRect.top);
+        float cb = Math.min(mWorkRect.bottom, mDrawRect.bottom);
         cl -= (cl - mDrawRect.left) % mUnit;
         ct -= (ct - mDrawRect.top) % mUnit;
 
         mPaint.setColor(mGridColor);
         if (mGridColor != Color.TRANSPARENT) {
-            int x1 = cl, x2 = cl;
-            int y1 = ct, y2 = ct;
+            float x1 = cl, x2 = cl;
+            float y1 = ct, y2 = ct;
             while (x1 < cr || y1 < cb) {
                 if (x1 < cr) x1 += mUnit; else y1 += mUnit;
                 if (y2 < cb) y2 += mUnit; else x2 += mUnit;
@@ -112,16 +114,16 @@ public class MagnifyView extends View implements OnScaleGestureListener {
         canvas.drawBitmap(mBitmap, mSrcRect, mDrawRect, null);
         if (mPaint.getColor() != Color.TRANSPARENT) {
             if (mDotted) {
-                for (int x = cl; x <= cr; x += mUnit) {
-                    for (int y = ct; y <= cb; y += mUnit) {
+                for (float x = cl; x <= cr; x += mUnit) {
+                    for (float y = ct; y <= cb; y += mUnit) {
                         canvas.drawPoint(x, y, mPaint);
                     }
                 }
             } else {
-                for (int x = cl; x <= cr; x += mUnit) {
+                for (float x = cl; x <= cr; x += mUnit) {
                     canvas.drawLine(x, ct, x, cb, mPaint);
                 }
-                for (int y = ct; y <= cb; y += mUnit) {
+                for (float y = ct; y <= cb; y += mUnit) {
                     canvas.drawLine(cl, y, cr, y, mPaint);
                 }
             }
@@ -142,8 +144,8 @@ public class MagnifyView extends View implements OnScaleGestureListener {
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        int x = (int) event.getX();
-        int y = (int) event.getY();
+        float x = event.getX();
+        float y = event.getY();
         if (mHandler != null) {
             int action = event.getActionMasked();
             float unitX = (x - mDrawRect.left) / mUnit;
@@ -199,7 +201,10 @@ public class MagnifyView extends View implements OnScaleGestureListener {
     public boolean onScale(ScaleGestureDetector detector) {
         float span = detector.getCurrentSpan();
         if (span > 0) {
-            int unit = (int) (mScalingUnit * span / mScalingSpan + .5);
+            float unit = mScalingUnit * span / mScalingSpan;
+            if (!mIsSmooth) {
+                unit = Math.round(unit);
+            }
             if (unit < mMinUnit) {
                 unit = mMinUnit;
             }
@@ -208,8 +213,8 @@ public class MagnifyView extends View implements OnScaleGestureListener {
             }
             if (unit != mUnit) {
                 mUnit = unit;
-                int dx = (int) (mFocusX - (mFocusUnitX + .5f) * unit);
-                int dy = (int) (mFocusY - (mFocusUnitY + .5f) * unit);
+                float dx = mFocusX - mFocusUnitX * unit;
+                float dy = mFocusY - mFocusUnitY * unit;
                 mDrawRect.set(dx, dy,
                         dx + mSrcRect.width() * mUnit, dy + mSrcRect.height() * mUnit);
                 adjustDrawRect();
@@ -223,10 +228,10 @@ public class MagnifyView extends View implements OnScaleGestureListener {
     public boolean onScaleBegin(ScaleGestureDetector detector) {
         mIsMoving = false;
         if (mBitmap != null) {
-            mFocusX = (int) detector.getFocusX();
-            mFocusY = (int) detector.getFocusY();
-            mFocusUnitX = ((int) mFocusX - mDrawRect.left) / mUnit;
-            mFocusUnitY = ((int) mFocusY - mDrawRect.top) / mUnit;
+            mFocusX = detector.getFocusX();
+            mFocusY = detector.getFocusY();
+            mFocusUnitX = (mFocusX - mDrawRect.left) / mUnit;
+            mFocusUnitY = (mFocusY - mDrawRect.top) / mUnit;
             mIsScaling = true;
             mScalingUnit = mUnit;
             mScalingSpan = detector.getCurrentSpan();
@@ -254,7 +259,12 @@ public class MagnifyView extends View implements OnScaleGestureListener {
         invalidate();
     }
 
-    public void setScaleRange(int min, int max) {
+    public void setBitmap(Bitmap bmp, boolean smooth) {
+        mIsSmooth = smooth;
+        setBitmap(bmp);
+    }
+
+    public void setScaleRange(float min, float max) {
         if (min <= max) {
             mMinUnit = min;
             mMaxUnit = max;
@@ -284,9 +294,10 @@ public class MagnifyView extends View implements OnScaleGestureListener {
     }
 
     public void invalidateUnit(int x, int y) {
-        int dx = mDrawRect.left;
-        int dy = mDrawRect.top;
-        invalidate(dx + x * mUnit, dy + y * mUnit, dx + (x + 1) * mUnit, dy + (y + 1) * mUnit);
+        float dx = mDrawRect.left;
+        float dy = mDrawRect.top;
+        invalidate((int) (dx + x * mUnit), (int) (dy + y * mUnit),
+                (int) (dx + (x + 1) * mUnit), (int) (dy + (y + 1) * mUnit));
     }
 
     public void invalidateUnit(int l, int t, int r, int b) {
@@ -295,9 +306,16 @@ public class MagnifyView extends View implements OnScaleGestureListener {
         } else if (t > b) {
             invalidateUnit(l, b, r, t);
         } else {
-            int dx = mDrawRect.left;
-            int dy = mDrawRect.top;
-            invalidate(dx + l * mUnit, dy + t * mUnit, dx + (r + 1) * mUnit, dy + (b + 1) * mUnit);
+            float dx = mDrawRect.left;
+            float dy = mDrawRect.top;
+            invalidate((int) (dx + l * mUnit), (int) (dy + t * mUnit),
+                    (int) (dx + (r + 1) * mUnit), (int) (dy + (b + 1) * mUnit));
+        }
+    }
+
+    public void getBitmapDrawRect(RectF outRect) {
+        if (outRect != null) {
+            outRect.set(mDrawRect);
         }
     }
 
@@ -308,42 +326,49 @@ public class MagnifyView extends View implements OnScaleGestureListener {
             mDrawRect.set(0, 0, 0, 0);
             return;
         }
-        int sw = mSrcRect.width();
-        int sh = mSrcRect.height();
-        int dw = getWidth();
-        int dh = getHeight();
+        float sw = mSrcRect.width();
+        float sh = mSrcRect.height();
+        float dw = getWidth();
+        float dh = getHeight();
         if (sw == 0 || sh == 0 || dw == 0 || dh == 0) {
             mDrawRect.set(0, 0, 0, 0);
             return;
         }
-        mUnit = Math.min((dw - 2) / sw, (dh - 2) / sh);
+        mUnit = Math.min((dw - 2f) / sw, (dh - 2f) / sh);
+        if (!mIsSmooth) {
+            mUnit = (float) Math.floor(mUnit);
+        }
         if (mUnit < mMinUnit) {
             mUnit = mMinUnit;
         }
-        int dx = (dw - sw * mUnit) / 2;
-        int dy = (dh - sh * mUnit) / 2;
+        if (mUnit > mMaxUnit) {
+            mUnit = mMaxUnit;
+        }
+        float dx = (dw - sw * mUnit) / 2f;
+        float dy = (dh - sh * mUnit) / 2f;
         mDrawRect.set(dx, dy, dx + sw * mUnit, dy + sh * mUnit);
     }
 
     private void adjustDrawRect() {
         int dw = getWidth();
         int dh = getHeight();
-        int margin = Math.min(dw, dh) / 4;
+        int mw = dw / 2;
+        int mh = dh / 2;
 
-        if (dw - mDrawRect.width() > margin * 2) {
+        if (dw - mDrawRect.width() > mw * 2) {
             mDrawRect.offset((dw - mDrawRect.width()) / 2 - mDrawRect.left, 0);
-        } else if (mDrawRect.left > margin){
-            mDrawRect.offset(margin - mDrawRect.left, 0);
-        } else if (dw - mDrawRect.right > margin){
-            mDrawRect.offset(dw - mDrawRect.right - margin, 0);
+        } else if (mDrawRect.left > mw){
+            mDrawRect.offset(mw - mDrawRect.left, 0);
+        } else if (dw - mDrawRect.right > mw){
+            mDrawRect.offset(dw - mDrawRect.right - mw, 0);
         }
 
-        if (dh - mDrawRect.height() > margin * 2) {
+        if (dh - mDrawRect.height() > mh * 2) {
             mDrawRect.offset(0, (dh - mDrawRect.height()) / 2 - mDrawRect.top);
-        } else if (mDrawRect.top > margin){
-            mDrawRect.offset(0, margin - mDrawRect.top);
-        } else if (dh - mDrawRect.bottom > margin){
-            mDrawRect.offset(0, dh - mDrawRect.bottom - margin);
+        } else if (mDrawRect.top > mh){
+            mDrawRect.offset(0, mh - mDrawRect.top);
+        } else if (dh - mDrawRect.bottom > mh){
+            mDrawRect.offset(0, dh - mDrawRect.bottom - mh);
         }
     }
 
