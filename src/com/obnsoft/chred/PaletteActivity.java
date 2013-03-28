@@ -168,6 +168,7 @@ public class PaletteActivity extends Activity implements OnItemSelectedListener,
         if (spinner == mPalSpinner) {
             mApp.mPalIdx = spinner.getSelectedItemPosition();
             mPalView.setPalette(mApp.mColData, mApp.mPalIdx);
+            mColPicker.setColor(mApp.mColData.getColor(mApp.mPalIdx, mApp.mColIdx));
             updatePreview();
         }
     }
