@@ -34,6 +34,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.RectF;
+import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -41,7 +42,6 @@ import android.os.Message;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.animation.AlphaAnimation;
 import android.widget.TextView;
 
 public class ScanQRActivity extends Activity {
@@ -53,6 +53,9 @@ public class ScanQRActivity extends Activity {
     private static final int MSG_EXECSCAN = 1;
     private static final int MSEC_TIMEOUT_EXECSCAN = 500;
     private static final int HEADLEN_CMPRSDATA = 20;
+    private static final int COLOR_DEFAULT = Color.argb(128, 255, 0, 0);
+    private static final int COLOR_FAIL = Color.rgb(255, 128, 0);
+    private static final int COLOR_SUCCESS = Color.rgb(0, 128, 255);
 
     private int mCurCnt;
     private int mCurLen;
@@ -70,6 +73,8 @@ public class ScanQRActivity extends Activity {
     private QRImageMediator mQrImage;
     private MagnifyView mQrView;
     private View mQrFrame;
+    private GradientDrawable mQrFrameDrawable;
+    private int mQrFrameSize;
     private TextView mTextMsg;
     private TextView mTextInfo;
 
@@ -77,11 +82,8 @@ public class ScanQRActivity extends Activity {
         @Override
         public void dispatchMessage(Message msg) {
             if (msg.what == MSG_EXECSCAN) {
-                executeScan();
-                AlphaAnimation anim = new AlphaAnimation(0f, 1f);
-                anim.setDuration(1000);
-                anim.setFillAfter(true);
-                mQrFrame.startAnimation(anim);
+                boolean ret = executeScan();
+                mQrFrameDrawable.setStroke(mQrFrameSize, ret ? COLOR_SUCCESS : COLOR_FAIL);
             }
         }
     };
@@ -89,8 +91,8 @@ public class ScanQRActivity extends Activity {
     /*-----------------------------------------------------------------------*/
 
     class QRImageMediator implements QRCodeImage {
-        private static final int MAX_SIZE = 768;
-        private static final int MIN_SIZE = 384;
+        private static final int MAX_SIZE = 512;
+        private static final int MIN_SIZE = 256;
         private int mX, mY, mW, mH;
         private int mSkip = 1;
         private int mScale = 1;
@@ -148,7 +150,14 @@ public class ScanQRActivity extends Activity {
         mQrView.setScrollable(true);
         mQrView.setScaleRange(.25f, 4f);
         mQrView.setFrameColor(Color.TRANSPARENT);
+
         mQrFrame = (View) findViewById(R.id.view_qrframe);
+        mQrFrameDrawable = new GradientDrawable();
+        mQrFrameDrawable.setColor(Color.TRANSPARENT);
+        mQrFrameSize = Utils.dp2px(this, 2);
+        mQrFrameDrawable.setStroke(mQrFrameSize, COLOR_DEFAULT);
+        mQrFrame.setBackgroundDrawable(mQrFrameDrawable);
+
         mTextMsg = (TextView) findViewById(R.id.text_qrmsg);
         mTextInfo = (TextView) findViewById(R.id.text_qrinfo);
 
@@ -217,14 +226,15 @@ public class ScanQRActivity extends Activity {
             switch (ev.getActionMasked()) {
             case MotionEvent.ACTION_UP:
                 mQrView.getBitmapDrawRect(mWorkRect);
-                float scale = mBitmap.getWidth() / mWorkRect.width();
-                int size = Math.round(mQrFrame.getWidth() * scale);
-                mQrImage.setTargetArea((int) ((mQrFrame.getLeft() - mWorkRect.left) / scale),
-                        (int) ((mQrFrame.getTop() - mWorkRect.top) / scale), size, size);
+                float ratio = mBitmap.getWidth() / mWorkRect.width();
+                int size = Math.round(mQrFrame.getWidth() * ratio);
+                mQrImage.setTargetArea((int) ((mQrFrame.getLeft() - mWorkRect.left) * ratio),
+                        (int) ((mQrFrame.getTop() - mWorkRect.top) * ratio), size, size);
                 startTimer();
                 break;
             case MotionEvent.ACTION_DOWN:
                 stopTimer();
+                mQrFrameDrawable.setStroke(mQrFrameSize, COLOR_DEFAULT);
                 break;
             }
         }
@@ -252,15 +262,15 @@ public class ScanQRActivity extends Activity {
         mTimeoutHandler.removeMessages(MSG_EXECSCAN);
     }
 
-    private void executeScan() {
+    private boolean executeScan() {
         byte[] qrData = scanQR(mQrImage);
         if (qrData == null) {
             myLog("Not QR-code.");
-            return;
+            return false;
         }
         if (qrData.length <= 36 || qrData[0] != 'P' || qrData[1] != 'T') {
-            myLog(String.format("Strange data. %02x %02x %02x %02x", qrData[0], qrData[1], qrData[2], qrData[3]));
-            return; 
+            myLog("Strange data.");
+            return false; 
         }
         byte[] md5each = new byte[16];
         byte[] md5 = new byte[16];
@@ -270,21 +280,25 @@ public class ScanQRActivity extends Activity {
         System.arraycopy(qrData, 36, partData, 0, partData.length);
         if (!Arrays.equals(md5each, Utils.getMD5(partData))) {
             myLog("Hash of this data is wrong.");
-            return;
+            return false;
         }
 
         /*  First QR-code  */
         if (mTotalCnt == 0) {
             if (partData.length <= HEADLEN_CMPRSDATA) {
-                myLog("Strange data as first.");
-                return;
+                myLog("Too short as 1st QR-code.");
+                return false;
+            }
+            mTotalLen = Utils.extractValue(partData, 12, 4) + HEADLEN_CMPRSDATA;
+            if (mTotalLen < 0 || mTotalLen > 1 * 1024 * 1024) {
+                myLog("Strange total length.");
+                return false;
             }
             mCurCnt = 0;
             mTotalCnt = qrData[3];
             System.arraycopy(qrData, 20, mMd5All, 0, 16);
             mEname = Utils.extractString(partData, 9, 3).concat(":")
                     .concat(Utils.extractString(partData, 0, 8));
-            mTotalLen = Utils.extractValue(partData, 12, 4) + HEADLEN_CMPRSDATA;
             mFinalLen = Utils.extractValue(partData, 16, 4);
             mCmprsData = new byte[mTotalLen];
         }
@@ -292,16 +306,16 @@ public class ScanQRActivity extends Activity {
         /*  Append data after check  */
         if (qrData[3] != mTotalCnt || !Arrays.equals(md5, mMd5All)) {
             myLog("Unsuitable for current data.");
-            return;
+            return false;
         }
         if (qrData[2] != mCurCnt + 1) {
             myLog("Wrong number for current data.");
-            return;
+            return false;
         }
         if (mCurLen + partData.length > mTotalLen) {
             myLog("Data is too much.");
             setFailedResult();
-            return;
+            return false;
         }
         System.arraycopy(partData, 0, mCmprsData, mCurLen, partData.length);
         mCurCnt++;
@@ -313,12 +327,12 @@ public class ScanQRActivity extends Activity {
             if (mCurLen < mTotalLen) {
                 myLog("Data isn't enough.");
                 setFailedResult();
-                return;
+                return false;
             }
             if (!Arrays.equals(md5, Utils.getMD5(mCmprsData))) {
                 myLog("Hash of whole data is wrong.");
                 setFailedResult();
-                return;
+                return false;
             }
             Inflater expander = new Inflater();
             expander.setInput(mCmprsData, HEADLEN_CMPRSDATA,
@@ -334,14 +348,14 @@ public class ScanQRActivity extends Activity {
             if (finalLen != mFinalLen) {
                 myLog("Length of expanded data is wrong.");
                 setFailedResult();
-                return;
+                return false;
             }
             myLog("Completed!!");
             setSuccessResult(data);
-            return;
+            return true;
         }
         myLog("Success!");
-        return;
+        return true;
     }
 
     private byte[] scanQR(QRCodeImage image) {
@@ -358,7 +372,9 @@ public class ScanQRActivity extends Activity {
     }
 
     private void setInformation() {
-        mTextMsg.setText(String.format(getString(R.string.qr_msg), mCurCnt + 1));
+        if (mTotalCnt == 0 || mCurCnt < mTotalCnt) {
+            mTextMsg.setText(String.format(getString(R.string.qr_msg), mCurCnt + 1));
+        }
         if (mTotalCnt > 0) {
             mTextInfo.setText(String.format("%s(%d/%d)", mEname, mCurCnt, mTotalCnt));
         }
