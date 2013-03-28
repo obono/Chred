@@ -25,7 +25,7 @@ import com.obnsoft.view.MagnifyView;
 import jp.sourceforge.qrcode.QRCodeDecoder;
 import jp.sourceforge.qrcode.data.QRCodeImage;
 import jp.sourceforge.qrcode.exception.DecodingFailedException;
-import jp.sourceforge.qrcode.util.DebugCanvasAdapter;
+//import jp.sourceforge.qrcode.util.DebugCanvasAdapter;
 import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -37,7 +37,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.util.Log;
+//import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.TextView;
@@ -50,7 +50,7 @@ public class ScanQRActivity extends Activity {
     private static final int REQUEST_ID_CHOOSE_FILE = 1;
     private static final int MSG_EXECSCAN = 1;
     private static final int MSEC_TIMEOUT_EXECSCAN = 500;
-    private static final int COLOR_DEFAULT = Color.argb(128, 255, 0, 0);
+    private static final int COLOR_DEFAULT = Color.argb(96, 255, 0, 0);
     private static final int COLOR_FAIL = Color.rgb(192, 192, 0);
     private static final int COLOR_SUCCESS = Color.rgb(0, 128, 255);
 
@@ -74,6 +74,7 @@ public class ScanQRActivity extends Activity {
     private TextView mTextMsg;
     private TextView mTextInfo;
 
+    private QRCodeDecoder mDecoder;
     private Handler mTimeoutHandler = new Handler() {
         @Override
         public void dispatchMessage(Message msg) {
@@ -127,12 +128,12 @@ public class ScanQRActivity extends Activity {
         }
     }
 
-    class MyDebugCanvas extends DebugCanvasAdapter {
+    /*class MyDebugCanvas extends DebugCanvasAdapter {
         @Override
         public void println(String s) {
             Log.d("CHRED", s);
         }
-    }
+    }*/
 
     /*-----------------------------------------------------------------------*/
 
@@ -160,6 +161,9 @@ public class ScanQRActivity extends Activity {
         mCurCnt = 0;
         mTotalCnt = 0;
         setInformation();
+
+        mDecoder = new QRCodeDecoder();
+        //QRCodeDecoder.setCanvas(new MyDebugCanvas());
     }
 
     @Override
@@ -244,7 +248,7 @@ public class ScanQRActivity extends Activity {
     /*-----------------------------------------------------------------------*/
 
     private void requsetFileFromGallery() {
-        Intent intent = new Intent(Intent.ACTION_GET_CONTENT/*ACTION_PICK*/);
+        Intent intent = new Intent(Intent.ACTION_PICK);
         intent.setType("image/*");
         startActivityForResult(intent, REQUEST_ID_CHOOSE_FILE);
     }
@@ -261,10 +265,11 @@ public class ScanQRActivity extends Activity {
     private boolean executeScan() {
         byte[] qrData = scanQR(mQrImage);
         if (qrData == null) {
-            myLog("Not QR-code.");
+            myLog("Not QR code.");
             return false;
         }
         if (qrData.length <= 36 || qrData[0] != 'P' || qrData[1] != 'T') {
+            Utils.showToast(this, R.string.qr_err_invalid);
             myLog("Strange data.");
             return false; 
         }
@@ -275,18 +280,26 @@ public class ScanQRActivity extends Activity {
         System.arraycopy(qrData, 20, md5, 0, 16);
         System.arraycopy(qrData, 36, partData, 0, partData.length);
         if (!Arrays.equals(md5each, Utils.getMD5(partData))) {
+            Utils.showToast(this, R.string.qr_err_corrupt);
             myLog("Hash of this data is wrong.");
             return false;
         }
 
-        /*  First QR-code  */
+        /*  First QR code  */
         if (mTotalCnt == 0) {
             if (partData.length <= PTCFile.HEADLEN_CMPRSDATA) {
-                myLog("Too short as 1st QR-code.");
+                Utils.showToast(this, R.string.qr_err_corrupt);
+                myLog("Too short as 1st QR code.");
+                return false;
+            }
+            if (qrData[2] != 1) {
+                Utils.showToast(this, String.format(getString(R.string.qr_err_order), qrData[2]));
+                myLog("Wrong number for current data.");
                 return false;
             }
             mTotalLen = Utils.extractValue(partData, 12, 4) + PTCFile.HEADLEN_CMPRSDATA;
             if (mTotalLen < 0 || mTotalLen > PTCFile.WORKLEN_CMPRSDATA) {
+                Utils.showToast(this, R.string.qr_err_corrupt);
                 myLog("Strange total length.");
                 return false;
             }
@@ -300,10 +313,12 @@ public class ScanQRActivity extends Activity {
 
         /*  Append data after check  */
         if (qrData[3] != mTotalCnt || !Arrays.equals(md5, mMd5All)) {
+            Utils.showToast(this, R.string.qr_err_different);
             myLog("Unsuitable for current data.");
             return false;
         }
         if (qrData[2] != mCurCnt + 1) {
+            Utils.showToast(this, String.format(getString(R.string.qr_err_order), qrData[2]));
             myLog("Wrong number for current data.");
             return false;
         }
@@ -317,7 +332,7 @@ public class ScanQRActivity extends Activity {
         mCurLen += partData.length;
         setInformation();
 
-        /*  Last QR-code  */
+        /*  Last QR code  */
         if (mCurCnt == mTotalCnt) {
             if (mCurLen < mTotalLen) {
                 myLog("Data isn't enough.");
@@ -338,12 +353,10 @@ public class ScanQRActivity extends Activity {
     }
 
     private byte[] scanQR(QRCodeImage image) {
-        QRCodeDecoder decoder = new QRCodeDecoder();
-        QRCodeDecoder.setCanvas(new MyDebugCanvas());
         byte[] ret = null;
         myLog("scanQR()");
         try {
-            ret = decoder.decode(image);
+            ret = mDecoder.decode(image);
         } catch (DecodingFailedException e) {
             ret = null;
         }
@@ -380,6 +393,6 @@ public class ScanQRActivity extends Activity {
     }
 
     private void myLog(String str) {
-        Log.i("CHRED", str);
+        //Log.i("CHRED", str);
     }
 }

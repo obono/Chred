@@ -11,6 +11,10 @@
     <string name="ename_default" translatable="false">ANDROID</string>
     <string name="qr_msg">Move #%d QR code into red frame</string>
     <string name="qr_other">Other image</string>
+    <string name="qr_err_invalid">Invalid QR code.</string>
+    <string name="qr_err_corrupt">Corrupt QR code.</string>
+    <string name="qr_err_different">Different QR code.</string>
+    <string name="qr_err_order">This is #%d QR code.</string>
     <string name="title_import">Load PTC file</string>
     <string name="title_export_chr">Save CHR data to PTC file</string>
     <string name="title_export_col">Save COL data to PTC file</string>

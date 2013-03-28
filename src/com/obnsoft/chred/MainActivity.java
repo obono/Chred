@@ -146,6 +146,8 @@ public class MainActivity extends TabActivity {
             if (resultCode == RESULT_OK) {
                 confirmImportFromCompressedData(
                         data.getByteArrayExtra(ScanQRActivity.INTENT_EXTRA_DATA));
+            } else if (resultCode == ScanQRActivity.RESULT_FAILED) {
+                Utils.showToast(this, R.string.msg_error);
             }
             break;
         case REQUEST_ID_EXPORT_CHR:
