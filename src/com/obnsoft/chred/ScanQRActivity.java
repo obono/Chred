@@ -19,8 +19,6 @@ package com.obnsoft.chred;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
-import java.util.zip.DataFormatException;
-import java.util.zip.Inflater;
 
 import com.obnsoft.view.MagnifyView;
 
@@ -52,16 +50,14 @@ public class ScanQRActivity extends Activity {
     private static final int REQUEST_ID_CHOOSE_FILE = 1;
     private static final int MSG_EXECSCAN = 1;
     private static final int MSEC_TIMEOUT_EXECSCAN = 500;
-    private static final int HEADLEN_CMPRSDATA = 20;
     private static final int COLOR_DEFAULT = Color.argb(128, 255, 0, 0);
-    private static final int COLOR_FAIL = Color.rgb(255, 128, 0);
+    private static final int COLOR_FAIL = Color.rgb(192, 192, 0);
     private static final int COLOR_SUCCESS = Color.rgb(0, 128, 255);
 
     private int mCurCnt;
     private int mCurLen;
     private int mTotalCnt;
     private int mTotalLen;
-    private int mFinalLen;
     private String mEname;
     private byte[] mMd5All = new byte[16];
     private byte[] mCmprsData;
@@ -154,7 +150,7 @@ public class ScanQRActivity extends Activity {
         mQrFrame = (View) findViewById(R.id.view_qrframe);
         mQrFrameDrawable = new GradientDrawable();
         mQrFrameDrawable.setColor(Color.TRANSPARENT);
-        mQrFrameSize = Utils.dp2px(this, 2);
+        mQrFrameSize = Utils.dp2px(this, 4);
         mQrFrameDrawable.setStroke(mQrFrameSize, COLOR_DEFAULT);
         mQrFrame.setBackgroundDrawable(mQrFrameDrawable);
 
@@ -285,12 +281,12 @@ public class ScanQRActivity extends Activity {
 
         /*  First QR-code  */
         if (mTotalCnt == 0) {
-            if (partData.length <= HEADLEN_CMPRSDATA) {
+            if (partData.length <= PTCFile.HEADLEN_CMPRSDATA) {
                 myLog("Too short as 1st QR-code.");
                 return false;
             }
-            mTotalLen = Utils.extractValue(partData, 12, 4) + HEADLEN_CMPRSDATA;
-            if (mTotalLen < 0 || mTotalLen > 1 * 1024 * 1024) {
+            mTotalLen = Utils.extractValue(partData, 12, 4) + PTCFile.HEADLEN_CMPRSDATA;
+            if (mTotalLen < 0 || mTotalLen > PTCFile.WORKLEN_CMPRSDATA) {
                 myLog("Strange total length.");
                 return false;
             }
@@ -299,7 +295,6 @@ public class ScanQRActivity extends Activity {
             System.arraycopy(qrData, 20, mMd5All, 0, 16);
             mEname = Utils.extractString(partData, 9, 3).concat(":")
                     .concat(Utils.extractString(partData, 0, 8));
-            mFinalLen = Utils.extractValue(partData, 16, 4);
             mCmprsData = new byte[mTotalLen];
         }
 
@@ -334,24 +329,8 @@ public class ScanQRActivity extends Activity {
                 setFailedResult();
                 return false;
             }
-            Inflater expander = new Inflater();
-            expander.setInput(mCmprsData, HEADLEN_CMPRSDATA,
-                    mCmprsData.length - HEADLEN_CMPRSDATA);
-            byte[] data = new byte[mFinalLen];
-            int finalLen = 0;
-            try {
-                finalLen = expander.inflate(data);
-            } catch (DataFormatException e) {
-                e.printStackTrace();
-            }
-            expander.end();
-            if (finalLen != mFinalLen) {
-                myLog("Length of expanded data is wrong.");
-                setFailedResult();
-                return false;
-            }
             myLog("Completed!!");
-            setSuccessResult(data);
+            setSuccessResult(mCmprsData);
             return true;
         }
         myLog("Success!");

@@ -21,7 +21,9 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.Locale;
+import java.util.zip.DataFormatException;
 import java.util.zip.Deflater;
+import java.util.zip.Inflater;
 
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -32,11 +34,15 @@ import com.swetake.util.Qrcode;
 
 public class PTCFile {
 
+    public static final int PTC_TYPE_UNKNOWN = -1;
     public static final int PTC_TYPE_CHR = 3;
     public static final int PTC_TYPE_COL = 5;
 
+    public static final int HEADLEN_CMPRSDATA = 20;
+    public static final int WORKLEN_CMPRSDATA = 1024 * 1024; // 1MiB
+
     private static final String[] PTC_TYPE_PREFIX =
-            {null, null, null, "CHR:", null, "COL:"};
+            {null, null, null, "CHR", null, "COL"};
     private static final String PTC_ID = "PX01";
     private static final String PTCQR_ID = "PT";
     private static final byte[] MD5EXTRA =
@@ -54,6 +60,16 @@ public class PTCFile {
     private byte[] mData;
 
     /*-----------------------------------------------------------------------*/
+
+    public PTCFile() {
+        clear();
+    }
+
+    public PTCFile(String name, int type, byte[] data) {
+        mName = name;
+        mType = type;
+        mData = data;
+    }
 
     public String getName() {
         return (mName == null) ? MyApplication.ENAME_DEFAULT : mName;
@@ -97,27 +113,67 @@ public class PTCFile {
         return true;
     }
 
+    public boolean expand(byte[] cmprsData) {
+        if (cmprsData.length <= 20) {
+            return false;
+        }
+        int finalLen = Utils.extractValue(cmprsData, 16, 4);
+        byte[] data = new byte[finalLen];
+        int dataLen = 0;
+        try {
+            Inflater expander = new Inflater();
+            expander.setInput(cmprsData, 20, cmprsData.length - 20);
+            dataLen = expander.inflate(data);
+            expander.end();
+        } catch (DataFormatException e) {
+            e.printStackTrace();
+        }
+        if (dataLen != finalLen) {
+            return false;
+        }
+        mType = getTypeFromPrefix(Utils.extractString(cmprsData, 9, 3));
+        if (mType == PTC_TYPE_UNKNOWN) {
+            return false;
+        }
+        mName = Utils.extractString(cmprsData, 0, 8);
+        mData = data;
+        return true;
+    }
+
     public boolean save(OutputStream out) {
         return save(out, mName, mType, mData);
     }
 
+    public byte[] compress() {
+        return compress(mName, mType, mData);
+    }
+
     public Bitmap generateQRCodes(boolean isTight, String footer) {
-        return generateQRCodes(getName(), getData(), isTight, footer);
+        return generateQRCodes(compress(), isTight, footer);
     }
 
     public void clear() {
         mName = null;
-        mType = 0;
+        mType = PTC_TYPE_UNKNOWN;
         mData = null;
     }
 
     /*-----------------------------------------------------------------------*/
 
+    public static int getTypeFromPrefix(String prefix) {
+        for (int i = 0; i < PTC_TYPE_PREFIX.length; i++) {
+            if (prefix.equals(PTC_TYPE_PREFIX[i])) {
+                return i;
+            }
+        }
+        return PTC_TYPE_UNKNOWN;
+    }
+
     public static String getNameWithType(int type, String name) {
         switch (type) {
         case PTC_TYPE_CHR:
         case PTC_TYPE_COL:
-            return PTC_TYPE_PREFIX[type].concat(name);
+            return PTC_TYPE_PREFIX[type].concat(":").concat(name);
         default:
             return null;
         }
@@ -144,11 +200,31 @@ public class PTCFile {
         return true;
     }
 
-    public static Bitmap generateQRCodes(String name, byte[] data, boolean isTight, String footer) {
-        byte[] cmprsData = compressData(name, data);
-        if (cmprsData == null) {
+    public static byte[] compress(String strName, int type, byte[] data) {
+        if (data == null) {
             return null;
         }
+        byte[] work = new byte[WORKLEN_CMPRSDATA];
+        Deflater compresser = new Deflater(Deflater.BEST_COMPRESSION);
+        compresser.setInput(data);
+        compresser.finish();
+        int len = compresser.deflate(work);
+        compresser.end();
+        if (len > 0 && len < work.length - 1) {
+            byte[] cmprsData = new byte[20 + len];
+            Utils.embedString(cmprsData, 0, 8, strName);
+            cmprsData[8] = 'R';
+            Utils.embedString(cmprsData, 9, 3, PTC_TYPE_PREFIX[type]);
+            Utils.embedValue(cmprsData, 12, 4, len);
+            Utils.embedValue(cmprsData, 16, 4, data.length);
+            System.arraycopy(work, 0, cmprsData, 20, len);
+            return cmprsData;
+        }
+        return null;
+    }
+
+    public static Bitmap generateQRCodes(byte[] cmprsData, boolean isTight, String footer) {
+        if (cmprsData == null) return null;
 
         /*  Prepare for processing data  */
         byte[] md5 = Utils.getMD5(cmprsData);
@@ -178,7 +254,8 @@ public class PTCFile {
         }
         paint.setColor(Color.BLACK);
         paint.setTextSize(24);
-        String lbl = Utils.extractString(cmprsData, 9, 3).concat(":").concat(name);
+        String lbl = Utils.extractString(cmprsData, 9, 3)
+                .concat(":").concat(Utils.extractString(cmprsData, 0, 8));
         canvas.drawText(lbl, (bmp.getWidth() - paint.measureText(lbl)) / 2, QR_PADDING, paint);
         int qx = QR_MARGIN + QR_PADDING;
         int qy = QR_MARGIN + QR_PADDING;
@@ -233,28 +310,6 @@ public class PTCFile {
         System.arraycopy(MD5EXTRA, 0, work, 0, MD5EXTRA.length);
         System.arraycopy(data, 0, work, MD5EXTRA.length, data.length);
         return Utils.getMD5(work);
-    }
-
-    private static byte[] compressData(String strName, byte[] orgData) {
-        if (orgData == null) {
-            return null;
-        }
-        byte[] work = new byte[1024 * 1024]; // 1MiB
-        Deflater compresser = new Deflater(Deflater.BEST_COMPRESSION);
-        compresser.setInput(orgData);
-        compresser.finish();
-        int len = compresser.deflate(work);
-        compresser.end();
-        if (len > 0 && len < work.length - 1) {
-            byte[] data = new byte[20 + len];
-            Utils.embedString(data, 0, 8, strName);
-            System.arraycopy(orgData, 8, data, 8, 4); // "R***"
-            Utils.embedValue(data, 12, 4, len);
-            Utils.embedValue(data, 16, 4, orgData.length);
-            System.arraycopy(work, 0, data, 20, len);
-            return data;
-        }
-        return null;
     }
 
 }
