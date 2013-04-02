@@ -35,14 +35,18 @@ import com.swetake.util.Qrcode;
 public class PTCFile {
 
     public static final int PTC_TYPE_UNKNOWN = -1;
+    public static final int PTC_TYPE_PRG = 0;
+    public static final int PTC_TYPE_MEM = 1;
+    public static final int PTC_TYPE_GRP = 2;
     public static final int PTC_TYPE_CHR = 3;
+    public static final int PTC_TYPE_SCR = 4;
     public static final int PTC_TYPE_COL = 5;
 
     public static final int HEADLEN_CMPRSDATA = 20;
     public static final int WORKLEN_CMPRSDATA = 1024 * 1024; // 1MiB
 
     private static final String[] PTC_TYPE_PREFIX =
-            {null, null, null, "CHR", null, "COL"};
+            {"PRG", "MEM", "GRP", "CHR", "SCR", "COL"};
     private static final String PTC_ID = "PX01";
     private static final String PTCQR_ID = "PT";
     private static final byte[] MD5EXTRA =
@@ -72,7 +76,11 @@ public class PTCFile {
     }
 
     public String getName() {
-        return (mName == null) ? MyApplication.ENAME_DEFAULT : mName;
+        return mName;
+    }
+
+    public void setName(String name) {
+        mName = name;
     }
 
     public int getType() {
@@ -84,7 +92,8 @@ public class PTCFile {
     }
 
     public String getNameWithType() {
-        return getNameWithType(mType, getName());
+        return (mType != PTC_TYPE_UNKNOWN) ?
+                getPrefixFromType(mType).concat(":").concat(getName()) : null;
     }
 
     public boolean load(InputStream in) {
@@ -169,19 +178,16 @@ public class PTCFile {
         return PTC_TYPE_UNKNOWN;
     }
 
-    public static String getNameWithType(int type, String name) {
-        switch (type) {
-        case PTC_TYPE_CHR:
-        case PTC_TYPE_COL:
-            return PTC_TYPE_PREFIX[type].concat(":").concat(name);
-        default:
-            return null;
-        }
+    public static String getPrefixFromType(int type) {
+        return (type >=0 && type < PTC_TYPE_PREFIX.length) ? PTC_TYPE_PREFIX[type] : null;
     }
 
     public static boolean save(OutputStream out, String name, int type, byte[] data) {
-        if (out == null || name == null || data == null) {
+        if (out == null || type == PTC_TYPE_UNKNOWN || data == null) {
             return false;
+        }
+        if (name == null || name.length() == 0) {
+            name = MyApplication.ENAME_DEFAULT;
         }
         byte[] header = new byte[20];
         Utils.embedString(header, 0, 4, PTC_ID);
@@ -200,9 +206,12 @@ public class PTCFile {
         return true;
     }
 
-    public static byte[] compress(String strName, int type, byte[] data) {
-        if (data == null) {
+    public static byte[] compress(String name, int type, byte[] data) {
+        if (type == PTC_TYPE_UNKNOWN || data == null) {
             return null;
+        }
+        if (name == null || name.length() == 0) {
+            name = MyApplication.ENAME_DEFAULT;
         }
         byte[] work = new byte[WORKLEN_CMPRSDATA];
         Deflater compresser = new Deflater(Deflater.BEST_COMPRESSION);
@@ -212,7 +221,7 @@ public class PTCFile {
         compresser.end();
         if (len > 0 && len < work.length - 1) {
             byte[] cmprsData = new byte[20 + len];
-            Utils.embedString(cmprsData, 0, 8, strName);
+            Utils.embedString(cmprsData, 0, 8, name);
             cmprsData[8] = 'R';
             Utils.embedString(cmprsData, 9, 3, PTC_TYPE_PREFIX[type]);
             Utils.embedValue(cmprsData, 12, 4, len);

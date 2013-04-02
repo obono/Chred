@@ -57,12 +57,12 @@ public class MainActivity extends TabActivity {
     private static final int REQUEST_ID_IMPORT_FILE = 1;
     private static final int REQUEST_ID_IMPORT_GALLERY = 2;
     //private static final int REQUEST_ID_IMPORT_CAMERA = 3;
-    private static final int REQUEST_ID_EXPORT_CHR = 11;
-    private static final int REQUEST_ID_EXPORT_COL = 12;
+    private static final int REQUEST_ID_EXPORT = 10;
 
     private static final char FULLWIDTH_EXCLAMATION_MARK = 0xFF01;
 
     private MyApplication mApp;
+    private PTCFile mWorkPTC;
 
     /*-----------------------------------------------------------------------*/
 
@@ -119,12 +119,20 @@ public class MainActivity extends TabActivity {
             selectPresetToImport();
             return true;
         case R.id.menu_export_chr:
+            requestFileToExport(
+                    new PTCFile(null, PTCFile.PTC_TYPE_CHR, mApp.mChrData.serialize()));
+            return true;
         case R.id.menu_export_col:
-            requestFileToExport(menuId);
+            requestFileToExport(
+                    new PTCFile(null, PTCFile.PTC_TYPE_COL, mApp.mColData.serialize()));
             return true;
         case R.id.menu_export_qr_chr:
+            confirmExportToQRCodes(
+                    new PTCFile(null, PTCFile.PTC_TYPE_CHR, mApp.mChrData.serialize()));
+            return true;
         case R.id.menu_export_qr_col:
-            confirmExportToQRCodes(menuId);
+            confirmExportToQRCodes(
+                    new PTCFile(null, PTCFile.PTC_TYPE_COL, mApp.mColData.serialize()));
             return true;
         case R.id.menu_version:
             startActivity(new Intent(this, SettingActivity.class));
@@ -150,12 +158,13 @@ public class MainActivity extends TabActivity {
                 Utils.showToast(this, R.string.msg_error);
             }
             break;
-        case REQUEST_ID_EXPORT_CHR:
-        case REQUEST_ID_EXPORT_COL:
+        case REQUEST_ID_EXPORT:
             if (resultCode == RESULT_OK) {
-                confirmExportToFile(requestCode,
+                confirmExportToFile(mWorkPTC,
                         data.getStringExtra(MyFilePickerActivity.INTENT_EXTRA_SELECTPATH));
             }
+            mWorkPTC.clear();
+            mWorkPTC = null;
             break;
         }
     }
@@ -209,7 +218,7 @@ public class MainActivity extends TabActivity {
             ret = ptcfile.load(in);
             in.close();
             if (ret) {
-                executeImportFromPTCFile(ptcfile);
+                executeImportFromPTCFile(ptcfile, false);
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -222,76 +231,91 @@ public class MainActivity extends TabActivity {
     private void confirmImportFromCompressedData(byte[] cmprsData) {
         PTCFile ptcfile = new PTCFile();
         if (ptcfile.expand(cmprsData)) {
-            executeImportFromPTCFile(ptcfile);
+            executeImportFromPTCFile(ptcfile, true);
         } else {
             Utils.showToast(this, R.string.msg_error);
         }
     }
 
-    private void executeImportFromPTCFile(final PTCFile ptcfile) {
+    private void executeImportFromPTCFile(final PTCFile ptcfile, final boolean fromQR) {
+        final int type = ptcfile.getType();
         final String pname = ptcfile.getNameWithType();
-        OnClickListener cl = new OnClickListener() {
+        OnClickListener imLsn = new OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                if (ptcfile.getType() == PTCFile.PTC_TYPE_CHR) {
+                if (type == PTCFile.PTC_TYPE_CHR) {
                     mApp.mChrData.deserialize(ptcfile.getData());
-                    refreshActivity();
-                } else if (ptcfile.getType() == PTCFile.PTC_TYPE_COL) {
+                } else if (type == PTCFile.PTC_TYPE_COL) {
                     mApp.mColData.deserialize(ptcfile.getData());
-                    refreshActivity();
                 }
+                refreshActivity();
                 String msg = String.format(getString(R.string.msg_loadptc), pname);
                 Utils.showToast(MainActivity.this, msg);
             }
         };
-        if (pname != null) {
+        OnClickListener exLsn = new OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                if (fromQR) {
+                    requestFileToExport(ptcfile);
+                } else {
+                    executeExportToQRCodes(ptcfile);
+                }
+            }
+        };
+        int exBtnId = (fromQR) ? R.string.toptc : R.string.toqr;
+        if (type == PTCFile.PTC_TYPE_CHR || type == PTCFile.PTC_TYPE_COL) {
             String msg = String.format(getString(R.string.msg_import), pname);
-            Utils.showYesNoDialog(
-                    this, R.drawable.ic_import, R.string.menu_import, msg, cl);
+            Utils.show3ButtonsDialog(
+                    this, R.drawable.ic_import, R.string.menu_import, msg,
+                    android.R.string.no, null, exBtnId, exLsn,
+                    android.R.string.yes, imLsn);
         } else {
-            Utils.showToast(this, R.string.msg_notsupported);
+            String msg = String.format(getString(R.string.msg_notsupported), pname);
+            Utils.show3ButtonsDialog(
+                    this, R.drawable.ic_import, R.string.menu_import, msg,
+                    R.string.dismiss, null, 0, null, exBtnId, exLsn);
         }
     }
 
-    private void requestFileToExport(int menuId) {
-        int titleId;
-        String path;
-        int requestCode;
-        if (menuId == R.id.menu_export_col) {
-            titleId = R.string.title_export_col;
-            path = MyFilePickerActivity.DEFAULT_DIR_COL;
-            requestCode = REQUEST_ID_EXPORT_COL;
-        } else {
-            titleId = R.string.title_export_chr;
-            path = MyFilePickerActivity.DEFAULT_DIR_CHR;
-            requestCode = REQUEST_ID_EXPORT_CHR;
-        }
+    private void requestFileToExport(PTCFile ptcfile) {
+        if (ptcfile == null) return;
+        String path = MyFilePickerActivity.DEFAULT_DIR
+                .concat(PTCFile.getPrefixFromType(ptcfile.getType())).concat("/");
         Intent intent = new Intent(this, MyFilePickerActivity.class);
-        intent.putExtra(MyFilePickerActivity.INTENT_EXTRA_TITLEID, titleId);
+        intent.putExtra(MyFilePickerActivity.INTENT_EXTRA_TITLEID, R.string.title_export);
         intent.putExtra(MyFilePickerActivity.INTENT_EXTRA_DIRECTORY, path);
         intent.putExtra(MyFilePickerActivity.INTENT_EXTRA_EXTENSION, MyApplication.FNAMEEXT_PTC);
         intent.putExtra(MyFilePickerActivity.INTENT_EXTRA_WRITEMODE, true);
-        startActivityForResult(intent, requestCode);
+        startActivityForResult(intent, REQUEST_ID_EXPORT);
+        mWorkPTC = ptcfile;
     }
 
-    private void confirmExportToFile(final int requestCode, final String path) {
-        switch (mApp.mEnameModePtc) {
-        case MyApplication.ENAME_MODE_EVERY:
-            final EditText et = new EditText(this, null, R.attr.editTextEnameStyle);
-            OnClickListener cl = new OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    executeExportToFile(requestCode, path, et.getText().toString());
-                }
-            };
-            Utils.showCustomDialog(this, R.drawable.ic_file, R.string.msg_ename, et, cl);
-            break;
-        case MyApplication.ENAME_MODE_GUESS:
-            executeExportToFile(requestCode, path, guessEmbedName(path));
-            break;
-        case MyApplication.ENAME_MODE_CONST:
-            executeExportToFile(requestCode, path, mApp.mEname);
-            break;
+    private void confirmExportToFile(final PTCFile ptcfile, final String path) {
+        if (ptcfile != null && ptcfile.getName() == null) {
+            switch (mApp.mEnameModePtc) {
+            case MyApplication.ENAME_MODE_EVERY:
+                final EditText et = new EditText(this, null, R.attr.editTextEnameStyle);
+                OnClickListener cl = new OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        ptcfile.setName(et.getText().toString());
+                        executeExportToFile(ptcfile, path);
+                    }
+                };
+                Utils.showCustomDialog(this, R.drawable.ic_file, R.string.msg_ename, et, cl);
+                break;
+            case MyApplication.ENAME_MODE_GUESS:
+                ptcfile.setName(guessEmbedName(path));
+                executeExportToFile(ptcfile, path);
+                break;
+            case MyApplication.ENAME_MODE_CONST:
+                ptcfile.setName(mApp.mEname);
+                executeExportToFile(ptcfile, path);
+                break;
+            }
+        } else {
+            executeExportToFile(ptcfile, path);
         }
     }
 
@@ -310,17 +334,8 @@ public class MainActivity extends TabActivity {
         return buf.toString();
     }
 
-    private void executeExportToFile(int requestCode, String path, String ename) {
+    private void executeExportToFile(PTCFile ptcfile, String path) {
         boolean ret = false;
-        if (ename == null || ename.length() == 0) {
-            ename = MyApplication.ENAME_DEFAULT;
-        }
-        PTCFile ptcfile = null;
-        if (requestCode == REQUEST_ID_EXPORT_CHR) {
-            ptcfile = new PTCFile(ename, PTCFile.PTC_TYPE_CHR, mApp.mChrData.serialize());
-        } else if (requestCode == REQUEST_ID_EXPORT_COL) {
-            ptcfile = new PTCFile(ename, PTCFile.PTC_TYPE_COL, mApp.mColData.serialize());
-        }
         if (ptcfile != null) {
             try {
                 OutputStream out = new FileOutputStream(path);
@@ -343,36 +358,33 @@ public class MainActivity extends TabActivity {
         }
     }
 
-    private void confirmExportToQRCodes(final int menuId) {
-        switch (mApp.mEnameModeQr) {
-        case MyApplication.ENAME_MODE_EVERY:
-            final EditText et = new EditText(this, null, R.attr.editTextEnameStyle);
-            OnClickListener cl = new OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    executeExportToQRCodes(menuId, et.getText().toString());
-                }
-            };
-            Utils.showCustomDialog(this, R.drawable.ic_file, R.string.msg_ename, et, cl);
-            break;
-        case MyApplication.ENAME_MODE_CONST:
-            executeExportToQRCodes(menuId, mApp.mEname);
-            break;
+    private void confirmExportToQRCodes(final PTCFile ptcfile) {
+        if (ptcfile != null && ptcfile.getName() == null) {
+            switch (mApp.mEnameModeQr) {
+            case MyApplication.ENAME_MODE_EVERY:
+                final EditText et = new EditText(this, null, R.attr.editTextEnameStyle);
+                OnClickListener cl = new OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        ptcfile.setName(et.getText().toString());
+                        executeExportToQRCodes(ptcfile);
+                    }
+                };
+                Utils.showCustomDialog(this, R.drawable.ic_file, R.string.msg_ename, et, cl);
+                break;
+            case MyApplication.ENAME_MODE_CONST:
+                ptcfile.setName(mApp.mEname);
+                executeExportToQRCodes(ptcfile);
+                break;
+            }
+        } else {
+            executeExportToQRCodes(ptcfile);
         }
     }
 
-    private void executeExportToQRCodes(int menuId, String ename) {
+    private void executeExportToQRCodes(PTCFile ptcfile) {
         boolean ret = false;
-        if (ename == null || ename.length() == 0) {
-            ename = MyApplication.ENAME_DEFAULT;
-        }
-        PTCFile ptcfile = null;
         Bitmap bmp = null;
-        if (menuId == R.id.menu_export_qr_chr) {
-            ptcfile = new PTCFile(ename, PTCFile.PTC_TYPE_CHR, mApp.mChrData.serialize());
-        } else if (menuId == R.id.menu_export_qr_col) {
-            ptcfile = new PTCFile(ename, PTCFile.PTC_TYPE_COL, mApp.mColData.serialize());
-        }
         if (ptcfile != null) {
             String footer = "Generated by ".concat(getString(R.string.app_name))
                     .concat("  ").concat(Utils.getVersion(this));

@@ -35,8 +35,6 @@ public class MyFilePickerActivity extends FilePickerActivity {
     public static final String INTENT_EXTRA_TITLEID = "titleId";
     public static final String DEFAULT_DIR =
         Environment.getExternalStorageDirectory().getPath().concat("/petitcom/");
-    public static final String DEFAULT_DIR_COL = DEFAULT_DIR.concat("COL/");
-    public static final String DEFAULT_DIR_CHR = DEFAULT_DIR.concat("CHR/");
     public static final String DEFAULT_DIR_QR = DEFAULT_DIR.concat("QR/");
 
     @Override

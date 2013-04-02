@@ -25,6 +25,7 @@ import android.app.AlertDialog;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
@@ -117,15 +118,9 @@ public class Utils {
     /*-----------------------------------------------------------------------*/
 
     public static void showYesNoDialog(
-            Context context, int iconId, int titleId, String msg,
-            DialogInterface.OnClickListener listener) {
-        new AlertDialog.Builder(context)
-                .setIcon(iconId)
-                .setTitle(titleId)
-                .setMessage(msg)
-                .setPositiveButton(android.R.string.yes, listener)
-                .setNegativeButton(android.R.string.no, null)
-                .show();
+            Context context, int iconId, int titleId, String msg, OnClickListener listener) {
+        show3ButtonsDialog(context, iconId, titleId, msg,
+                android.R.string.no, null, 0, null, android.R.string.yes, listener);
     }
 
     public static void showShareDialog(
@@ -133,7 +128,7 @@ public class Utils {
         final String mimetype = MimeTypeMap.getSingleton()
                 .getMimeTypeFromExtension(path.substring(path.lastIndexOf('.') + 1));
         boolean showNeutral = (mimetype != null);
-        DialogInterface.OnClickListener l = new DialogInterface.OnClickListener() {
+        OnClickListener l = new OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 Intent intent = new Intent();
@@ -155,21 +150,33 @@ public class Utils {
                 }
             }
         };
+        show3ButtonsDialog(context, iconId, titleId, msg, android.R.string.ok,
+                null, (showNeutral) ? R.string.view : 0, l, R.string.share, l);
+    }
+
+    public static void show3ButtonsDialog(
+            Context context, int iconId, int titleId, String msg,
+            int ngBtnId, OnClickListener ngLsn,
+            int mdBtnId, OnClickListener mdLsn,
+            int psBtnId, OnClickListener psLsn) {
         AlertDialog.Builder dlgBuilder = new AlertDialog.Builder(context)
                 .setIcon(iconId)
                 .setTitle(titleId)
-                .setMessage(msg)
-                .setPositiveButton(R.string.share, l)
-                .setNegativeButton(android.R.string.ok, null);
-        if (showNeutral) {
-            dlgBuilder.setNeutralButton(R.string.view, l);
+                .setMessage(msg);
+        if (ngBtnId != 0) {
+            dlgBuilder.setNegativeButton(ngBtnId, ngLsn);
+        }
+        if (mdBtnId != 0) {
+            dlgBuilder.setNeutralButton(mdBtnId, mdLsn);
+        }
+        if (psBtnId != 0) {
+            dlgBuilder.setPositiveButton(psBtnId, psLsn);
         }
         dlgBuilder.show();
     }
 
     public static void showCustomDialog(
-            Context context, int iconId, int titleId, View view,
-            DialogInterface.OnClickListener listener) {
+            Context context, int iconId, int titleId, View view, OnClickListener listener) {
         final AlertDialog dlg = new AlertDialog.Builder(context)
                 .setIcon(iconId)
                 .setTitle(titleId)
@@ -177,8 +184,8 @@ public class Utils {
                 .setPositiveButton(android.R.string.ok, listener)
                 .create();
         if (listener != null) {
-            dlg.setButton(AlertDialog.BUTTON_NEGATIVE, context.getText(android.R.string.cancel),
-                    (DialogInterface.OnClickListener) null);
+            dlg.setButton(AlertDialog.BUTTON_NEGATIVE,
+                    context.getText(android.R.string.cancel), (OnClickListener) null);
         }
         if (view instanceof EditText) {
             view.setOnFocusChangeListener(new View.OnFocusChangeListener() {
