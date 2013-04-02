@@ -8,8 +8,8 @@
     <string name="size">Size</string>
     <string name="view">View</string>
     <string name="share">Share</string>
-    <string name="toptc">to PTC</string>
-    <string name="toqr">to QR</string>
+    <string name="toptc">To PTC</string>
+    <string name="toqr">To QR</string>
     <string name="dismiss">Dismiss</string>
     <string name="ename_default" translatable="false">ANDROID</string>
     <string name="qr_msg">Move #%d QR code into red frame</string>

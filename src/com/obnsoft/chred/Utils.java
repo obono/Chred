@@ -119,8 +119,8 @@ public class Utils {
 
     public static void showYesNoDialog(
             Context context, int iconId, int titleId, String msg, OnClickListener listener) {
-        show3ButtonsDialog(context, iconId, titleId, msg,
-                android.R.string.no, null, 0, null, android.R.string.yes, listener);
+        show2ButtonsDialog(context, iconId, titleId, msg,
+                android.R.string.no, android.R.string.yes, listener);
     }
 
     public static void showShareDialog(
@@ -150,29 +150,38 @@ public class Utils {
                 }
             }
         };
-        show3ButtonsDialog(context, iconId, titleId, msg, android.R.string.ok,
-                null, (showNeutral) ? R.string.view : 0, l, R.string.share, l);
+        if (showNeutral) {
+            show3ButtonsDialog(context, iconId, titleId, msg,
+                    android.R.string.ok, R.string.view, R.string.share, l, l);
+        } else {
+            show2ButtonsDialog(context, iconId, titleId, msg,
+                    android.R.string.ok, R.string.share, l);
+        }
+    }
+
+    public static void show2ButtonsDialog(
+            Context context, int iconId, int titleId, String msg,
+            int ngBtnId, int psBtnId, OnClickListener psLsn) {
+        new AlertDialog.Builder(context)
+                .setIcon(iconId)
+                .setTitle(titleId)
+                .setMessage(msg)
+                .setNegativeButton(ngBtnId, null)
+                .setPositiveButton(psBtnId, psLsn)
+                .show();
     }
 
     public static void show3ButtonsDialog(
             Context context, int iconId, int titleId, String msg,
-            int ngBtnId, OnClickListener ngLsn,
-            int mdBtnId, OnClickListener mdLsn,
-            int psBtnId, OnClickListener psLsn) {
-        AlertDialog.Builder dlgBuilder = new AlertDialog.Builder(context)
+            int ngBtnId, int mdBtnId, int psBtnId, OnClickListener mdLsn, OnClickListener psLsn) {
+        new AlertDialog.Builder(context)
                 .setIcon(iconId)
                 .setTitle(titleId)
-                .setMessage(msg);
-        if (ngBtnId != 0) {
-            dlgBuilder.setNegativeButton(ngBtnId, ngLsn);
-        }
-        if (mdBtnId != 0) {
-            dlgBuilder.setNeutralButton(mdBtnId, mdLsn);
-        }
-        if (psBtnId != 0) {
-            dlgBuilder.setPositiveButton(psBtnId, psLsn);
-        }
-        dlgBuilder.show();
+                .setMessage(msg)
+                .setNegativeButton(ngBtnId, null)
+                .setNeutralButton(mdBtnId, mdLsn)
+                .setPositiveButton(psBtnId, psLsn)
+                .show();
     }
 
     public static void showCustomDialog(

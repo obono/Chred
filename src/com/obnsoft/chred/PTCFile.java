@@ -92,8 +92,12 @@ public class PTCFile {
     }
 
     public String getNameWithType() {
-        return (mType != PTC_TYPE_UNKNOWN) ?
-                getPrefixFromType(mType).concat(":").concat(getName()) : null;
+        if (mType == PTC_TYPE_UNKNOWN) {
+            return null;
+        }
+        String name = getName();
+        return getPrefixFromType(mType).concat(":").concat(
+                (name == null || name.length() == 0) ? MyApplication.ENAME_DEFAULT : name);
     }
 
     public boolean load(InputStream in) {

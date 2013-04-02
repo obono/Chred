@@ -7,7 +7,7 @@
     <string name="view">確認</string>
     <string name="share">共有</string>
     <string name="toptc">PTC保存</string>
-    <string name="toqr">QR作成</string>
+    <string name="toqr">QR変換</string>
     <string name="dismiss">了解</string>
     <string name="qr_msg">%d番目のQRコードを枠内へ</string>
     <string name="qr_other">他の画像</string>

@@ -162,9 +162,10 @@ public class MainActivity extends TabActivity {
             if (resultCode == RESULT_OK) {
                 confirmExportToFile(mWorkPTC,
                         data.getStringExtra(MyFilePickerActivity.INTENT_EXTRA_SELECTPATH));
+            } else if (mWorkPTC != null) {
+                mWorkPTC.clear();
+                mWorkPTC = null;
             }
-            mWorkPTC.clear();
-            mWorkPTC = null;
             break;
         }
     }
@@ -266,15 +267,12 @@ public class MainActivity extends TabActivity {
         int exBtnId = (fromQR) ? R.string.toptc : R.string.toqr;
         if (type == PTCFile.PTC_TYPE_CHR || type == PTCFile.PTC_TYPE_COL) {
             String msg = String.format(getString(R.string.msg_import), pname);
-            Utils.show3ButtonsDialog(
-                    this, R.drawable.ic_import, R.string.menu_import, msg,
-                    android.R.string.no, null, exBtnId, exLsn,
-                    android.R.string.yes, imLsn);
+            Utils.show3ButtonsDialog(this, R.drawable.ic_import, R.string.menu_import, msg,
+                    android.R.string.no, exBtnId, android.R.string.yes, exLsn, imLsn);
         } else {
             String msg = String.format(getString(R.string.msg_notsupported), pname);
-            Utils.show3ButtonsDialog(
-                    this, R.drawable.ic_import, R.string.menu_import, msg,
-                    R.string.dismiss, null, 0, null, exBtnId, exLsn);
+            Utils.show2ButtonsDialog(this, R.drawable.ic_import, R.string.menu_import, msg,
+                    R.string.dismiss, exBtnId, exLsn);
         }
     }
 
@@ -351,6 +349,10 @@ public class MainActivity extends TabActivity {
                         getString(R.string.msg_saveptc), ptcfile.getNameWithType());
                 Utils.showShareDialog(MainActivity.this, R.drawable.ic_export,
                         R.string.menu_export, msg, path);
+            }
+            if (mWorkPTC == ptcfile) {
+                mWorkPTC.clear();
+                mWorkPTC = null;
             }
         }
         if (!ret) {
