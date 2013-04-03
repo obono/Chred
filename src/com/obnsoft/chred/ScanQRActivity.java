@@ -18,14 +18,10 @@ package com.obnsoft.chred;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Arrays;
 
 import com.obnsoft.view.MagnifyView;
 
-import jp.sourceforge.qrcode.QRCodeDecoder;
 import jp.sourceforge.qrcode.data.QRCodeImage;
-import jp.sourceforge.qrcode.exception.DecodingFailedException;
-//import jp.sourceforge.qrcode.util.DebugCanvasAdapter;
 import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -37,7 +33,6 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-//import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.TextView;
@@ -54,14 +49,6 @@ public class ScanQRActivity extends Activity {
     private static final int COLOR_FAIL = Color.rgb(192, 192, 0);
     private static final int COLOR_SUCCESS = Color.rgb(0, 128, 255);
 
-    private int mCurCnt;
-    private int mCurLen;
-    private int mTotalCnt;
-    private int mTotalLen;
-    private String mEname;
-    private byte[] mMd5All = new byte[16];
-    private byte[] mCmprsData;
-
     private boolean mIsOnResult;
     private Uri mUri;
     private Bitmap mBitmap;
@@ -74,13 +61,24 @@ public class ScanQRActivity extends Activity {
     private TextView mTextMsg;
     private TextView mTextInfo;
 
-    private QRCodeDecoder mDecoder;
+    private ScanQRManager mQRMan;
     private Handler mTimeoutHandler = new Handler() {
         @Override
         public void dispatchMessage(Message msg) {
             if (msg.what == MSG_EXECSCAN) {
-                boolean ret = executeScan();
-                mQrFrameDrawable.setStroke(mQrFrameSize, ret ? COLOR_SUCCESS : COLOR_FAIL);
+                boolean ret = mQRMan.executeScan(mQrImage);
+                if (mQRMan.inProgress()) {
+                    if (ret) {
+                        setInformation();
+                    }
+                    mQrFrameDrawable.setStroke(mQrFrameSize, ret ? COLOR_SUCCESS : COLOR_FAIL);
+                } else {
+                    if (ret) {
+                        setSuccessResult(mQRMan.getData());
+                    } else {
+                        setFailedResult();
+                    }
+                }
             }
         }
     };
@@ -158,12 +156,8 @@ public class ScanQRActivity extends Activity {
         mTextMsg = (TextView) findViewById(R.id.text_qrmsg);
         mTextInfo = (TextView) findViewById(R.id.text_qrinfo);
 
-        mCurCnt = 0;
-        mTotalCnt = 0;
+        mQRMan = new ScanQRManager(this);
         setInformation();
-
-        mDecoder = new QRCodeDecoder();
-        //QRCodeDecoder.setCanvas(new MyDebugCanvas());
     }
 
     @Override
@@ -262,115 +256,16 @@ public class ScanQRActivity extends Activity {
         mTimeoutHandler.removeMessages(MSG_EXECSCAN);
     }
 
-    private boolean executeScan() {
-        byte[] qrData = scanQR(mQrImage);
-        if (qrData == null) {
-            myLog("Not QR code.");
-            return false;
-        }
-        if (qrData.length <= 36 || qrData[0] != 'P' || qrData[1] != 'T') {
-            Utils.showToast(this, R.string.qr_err_invalid);
-            myLog("Strange data.");
-            return false; 
-        }
-        byte[] md5each = new byte[16];
-        byte[] md5 = new byte[16];
-        byte[] partData = new byte[qrData.length - 36];
-        System.arraycopy(qrData, 4, md5each, 0, 16);
-        System.arraycopy(qrData, 20, md5, 0, 16);
-        System.arraycopy(qrData, 36, partData, 0, partData.length);
-        if (!Arrays.equals(md5each, Utils.getMD5(partData))) {
-            Utils.showToast(this, R.string.qr_err_corrupt);
-            myLog("Hash of this data is wrong.");
-            return false;
-        }
-
-        /*  First QR code  */
-        if (mTotalCnt == 0) {
-            if (partData.length <= PTCFile.HEADLEN_CMPRSDATA) {
-                Utils.showToast(this, R.string.qr_err_corrupt);
-                myLog("Too short as 1st QR code.");
-                return false;
-            }
-            if (qrData[2] != 1) {
-                Utils.showToast(this, String.format(getString(R.string.qr_err_order), qrData[2]));
-                myLog("Wrong number for current data.");
-                return false;
-            }
-            mTotalLen = Utils.extractValue(partData, 12, 4) + PTCFile.HEADLEN_CMPRSDATA;
-            if (mTotalLen < 0 || mTotalLen > PTCFile.WORKLEN_CMPRSDATA) {
-                Utils.showToast(this, R.string.qr_err_corrupt);
-                myLog("Strange total length.");
-                return false;
-            }
-            mCurCnt = 0;
-            mTotalCnt = qrData[3];
-            System.arraycopy(qrData, 20, mMd5All, 0, 16);
-            mEname = Utils.extractString(partData, 9, 3).concat(":")
-                    .concat(Utils.extractString(partData, 0, 8));
-            mCmprsData = new byte[mTotalLen];
-        }
-
-        /*  Append data after check  */
-        if (qrData[3] != mTotalCnt || !Arrays.equals(md5, mMd5All)) {
-            Utils.showToast(this, R.string.qr_err_different);
-            myLog("Unsuitable for current data.");
-            return false;
-        }
-        if (qrData[2] != mCurCnt + 1) {
-            Utils.showToast(this, String.format(getString(R.string.qr_err_order), qrData[2]));
-            myLog("Wrong number for current data.");
-            return false;
-        }
-        if (mCurLen + partData.length > mTotalLen) {
-            myLog("Data is too much.");
-            setFailedResult();
-            return false;
-        }
-        System.arraycopy(partData, 0, mCmprsData, mCurLen, partData.length);
-        mCurCnt++;
-        mCurLen += partData.length;
-        setInformation();
-
-        /*  Last QR code  */
-        if (mCurCnt == mTotalCnt) {
-            if (mCurLen < mTotalLen) {
-                myLog("Data isn't enough.");
-                setFailedResult();
-                return false;
-            }
-            if (!Arrays.equals(md5, Utils.getMD5(mCmprsData))) {
-                myLog("Hash of whole data is wrong.");
-                setFailedResult();
-                return false;
-            }
-            myLog("Completed!!");
-            setSuccessResult(mCmprsData);
-            return true;
-        }
-        myLog("Success!");
-        return true;
-    }
-
-    private byte[] scanQR(QRCodeImage image) {
-        byte[] ret = null;
-        myLog("scanQR()");
-        try {
-            ret = mDecoder.decode(image);
-        } catch (DecodingFailedException e) {
-            ret = null;
-        }
-        return ret;
-    }
-
     private void setInformation() {
-        if (mTotalCnt == 0 || mCurCnt < mTotalCnt) {
-            mTextMsg.setText(String.format(getString(R.string.qr_msg), mCurCnt + 1));
+        int total = mQRMan.getTotalQRNumber();
+        int current = mQRMan.getCurrentQRNumber();
+        if (total == 0 || current < total) {
+            mTextMsg.setText(String.format(getString(R.string.qr_msg), current + 1));
         }
-        if (mTotalCnt > 0) {
-            mTextInfo.setText(String.format("%s(%d/%d)", mEname, mCurCnt, mTotalCnt));
+        if (total > 0) {
+            mTextInfo.setText(String.format(
+                    "%s(%d/%d)", mQRMan.getNameWithType(), current, total));
         }
-
     }
 
     private void setSuccessResult(byte[] data) {
@@ -392,7 +287,4 @@ public class ScanQRActivity extends Activity {
         finish();
     }
 
-    private void myLog(String str) {
-        //Log.i("CHRED", str);
-    }
 }
