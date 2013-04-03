@@ -56,7 +56,7 @@ public class MainActivity extends TabActivity {
 
     private static final int REQUEST_ID_IMPORT_FILE = 1;
     private static final int REQUEST_ID_IMPORT_GALLERY = 2;
-    //private static final int REQUEST_ID_IMPORT_CAMERA = 3;
+    private static final int REQUEST_ID_IMPORT_CAMERA = 3;
     private static final int REQUEST_ID_EXPORT = 10;
 
     private static final char FULLWIDTH_EXCLAMATION_MARK = 0xFF01;
@@ -113,7 +113,11 @@ public class MainActivity extends TabActivity {
             return true;
         case R.id.menu_import_gallery:
             startActivityForResult(
-                    new Intent(this, ScanQRActivity.class), REQUEST_ID_IMPORT_GALLERY);
+                    new Intent(this, ScanQRGalleryActivity.class), REQUEST_ID_IMPORT_GALLERY);
+            return true;
+        case R.id.menu_import_camera:
+            startActivityForResult(
+                    new Intent(this, ScanQRCameraActivity.class), REQUEST_ID_IMPORT_CAMERA);
             return true;
         case R.id.menu_import_preset:
             selectPresetToImport();
@@ -151,10 +155,11 @@ public class MainActivity extends TabActivity {
             }
             break;
         case REQUEST_ID_IMPORT_GALLERY:
+        case REQUEST_ID_IMPORT_CAMERA:
             if (resultCode == RESULT_OK) {
                 confirmImportFromCompressedData(
-                        data.getByteArrayExtra(ScanQRActivity.INTENT_EXTRA_DATA));
-            } else if (resultCode == ScanQRActivity.RESULT_FAILED) {
+                        data.getByteArrayExtra(ScanQRGalleryActivity.INTENT_EXTRA_DATA));
+            } else if (resultCode == ScanQRGalleryActivity.RESULT_FAILED) {
                 Utils.showToast(this, R.string.msg_error);
             }
             break;

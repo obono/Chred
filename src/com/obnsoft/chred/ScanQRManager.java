@@ -40,6 +40,13 @@ public class ScanQRManager {
     private Context mContext;
     private QRCodeDecoder mDecoder;
 
+    /*class MyDebugCanvas extends DebugCanvasAdapter {
+        @Override
+        public void println(String s) {
+            Log.d("CHRED", s);
+        }
+    }*/
+
     public ScanQRManager(Context context) {
         mContext = context;
         mDecoder = new QRCodeDecoder();
