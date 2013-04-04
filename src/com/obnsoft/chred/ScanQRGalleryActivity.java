@@ -27,7 +27,6 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.RectF;
-import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -47,9 +46,6 @@ public class ScanQRGalleryActivity extends ScanQRActivity {
     private RectF mWorkRect = new RectF();
     private QRImageMediator mQrImage;
     private MagnifyView mQrView;
-    private View mQrFrame;
-    private GradientDrawable mQrFrameDrawable;
-    private int mQrFrameSize;
 
     private Handler mTimeoutHandler = new Handler() {
         @Override
@@ -60,7 +56,7 @@ public class ScanQRGalleryActivity extends ScanQRActivity {
                     if (ret) {
                         setInformation();
                     }
-                    mQrFrameDrawable.setStroke(mQrFrameSize, ret ? COLOR_SUCCESS : COLOR_FAIL);
+                    setFrameResultColor(ret);
                 } else {
                     if (ret) {
                         setSuccessResult(mQRMan.getData());
@@ -119,7 +115,7 @@ public class ScanQRGalleryActivity extends ScanQRActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        setContentView(R.layout.scanqr);
+        setContentView(R.layout.scanqr_gal);
         super.onCreate(savedInstanceState);
 
         mQrImage = new QRImageMediator();
@@ -127,13 +123,6 @@ public class ScanQRGalleryActivity extends ScanQRActivity {
         mQrView.setScrollable(true);
         mQrView.setScaleRange(.25f, 4f);
         mQrView.setFrameColor(Color.TRANSPARENT);
-
-        mQrFrame = (View) findViewById(R.id.view_qrframe);
-        mQrFrameDrawable = new GradientDrawable();
-        mQrFrameDrawable.setColor(Color.TRANSPARENT);
-        mQrFrameSize = Utils.dp2px(this, 4);
-        mQrFrameDrawable.setStroke(mQrFrameSize, COLOR_DEFAULT);
-        mQrFrame.setBackgroundDrawable(mQrFrameDrawable);
     }
 
     @Override
@@ -204,7 +193,7 @@ public class ScanQRGalleryActivity extends ScanQRActivity {
                 break;
             case MotionEvent.ACTION_DOWN:
                 stopTimer();
-                mQrFrameDrawable.setStroke(mQrFrameSize, COLOR_DEFAULT);
+                setFrameDefaultColor();
                 break;
             }
         }

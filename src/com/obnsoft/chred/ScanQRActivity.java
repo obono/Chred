@@ -19,7 +19,9 @@ package com.obnsoft.chred;
 import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Color;
+import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.TextView;
 
 public class ScanQRActivity extends Activity {
@@ -33,7 +35,10 @@ public class ScanQRActivity extends Activity {
 
     private TextView mTextMsg;
     private TextView mTextInfo;
+    private GradientDrawable mQrFrameDrawable;
+    private int mQrFrameSize;
 
+    protected View mQrFrame;
     protected ScanQRManager mQRMan;
 
     /*-----------------------------------------------------------------------*/
@@ -41,8 +46,16 @@ public class ScanQRActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         mTextMsg = (TextView) findViewById(R.id.text_qrmsg);
         mTextInfo = (TextView) findViewById(R.id.text_qrinfo);
+        mQrFrame = (View) findViewById(R.id.view_qrframe);
+        mQrFrameDrawable = new GradientDrawable();
+        mQrFrameDrawable.setColor(Color.TRANSPARENT);
+        mQrFrameSize = Utils.dp2px(this, 4);
+        mQrFrame.setBackgroundDrawable(mQrFrameDrawable);
+        setFrameDefaultColor();
+
         mQRMan = new ScanQRManager(this);
         setInformation();
     }
@@ -57,6 +70,14 @@ public class ScanQRActivity extends Activity {
             mTextInfo.setText(String.format(
                     "%s(%d/%d)", mQRMan.getNameWithType(), current, total));
         }
+    }
+
+    protected void setFrameDefaultColor() {
+        mQrFrameDrawable.setStroke(mQrFrameSize, COLOR_DEFAULT);
+    }
+
+    protected void setFrameResultColor(boolean isSuccess) {
+        mQrFrameDrawable.setStroke(mQrFrameSize, isSuccess ? COLOR_SUCCESS : COLOR_FAIL);
     }
 
     protected void setSuccessResult(byte[] data) {

@@ -10,8 +10,8 @@
         />
     <View
         android:id="@+id/view_qrframe"
-        android:layout_width="160dp"
-        android:layout_height="160dp"
+        android:layout_width="240px"
+        android:layout_height="240px"
         android:layout_centerHorizontal="true"
         android:layout_centerVertical="true"
         />
