@@ -19,9 +19,14 @@ package com.obnsoft.chred;
 import java.io.IOException;
 import java.util.List;
 
+import jp.sourceforge.qrcode.data.QRCodeImage;
+
 import android.content.res.Configuration;
 import android.hardware.Camera;
+import android.hardware.Camera.PreviewCallback;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -29,9 +34,102 @@ import android.widget.RelativeLayout;
 
 public class ScanQRCameraActivity extends ScanQRActivity implements SurfaceHolder.Callback {
 
+    private static final int MSG_SCAN_SUCCESS = 1;
+    private static final int MSG_SCAN_FAIL = 2;
+    private static final int MSEC_TIMEOUT_EXECSCAN = 500;
+
     private Camera mCamera;
     private Camera.Size mCameraSize;
     private SurfaceView mQrView;
+    private ScanQRTask mTask;
+
+    private Handler mMsgHandler = new Handler() {
+        @Override
+        public void dispatchMessage(Message msg) {
+            if (msg.what == MSG_SCAN_SUCCESS || msg.what == MSG_SCAN_FAIL) {
+                boolean ret = (msg.what == MSG_SCAN_SUCCESS);
+                if (mQRMan.inProgress()) {
+                    if (ret) {
+                        setInformation();
+                        setFrameResultColor(true);
+                    } else {
+                        setFrameDefaultColor();
+                    }
+                } else {
+                    if (ret) {
+                        setSuccessResult(mQRMan.getData());
+                    } else {
+                        setFailedResult();
+                    }
+                }
+            }
+        }
+    };
+
+    /*-----------------------------------------------------------------------*/
+
+    class ScanQRTask implements Runnable, PreviewCallback, QRCodeImage {
+
+        private boolean mLoop;
+        private int mSize;
+        private byte[] mData;
+
+        public ScanQRTask(int size) {
+            mLoop = true;
+            mSize = size;
+        }
+
+        public void finish() {
+            mLoop = false;
+        }
+
+        @Override
+        public void run() {
+            mCamera.setPreviewCallbackWithBuffer(this);
+            while (mLoop) {
+                int bufSize = mCameraSize.width * mCameraSize.height * 2;
+                mCamera.addCallbackBuffer(new byte[bufSize]);
+                while (mData == null && mLoop) {
+                    try {
+                        Thread.sleep(MSEC_TIMEOUT_EXECSCAN);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+                if (mData != null) {
+                    boolean ret = mQRMan.executeScan(this);
+                    mMsgHandler.sendEmptyMessage(ret ? MSG_SCAN_SUCCESS : MSG_SCAN_FAIL);
+                    mData = null;
+                }
+            }
+        }
+
+        @Override
+        public void onPreviewFrame(byte[] data, Camera camera) {
+            if (mData == null) {
+                mData = data;
+            }
+        }
+
+        @Override
+        public int getWidth() {
+            return mSize;
+        }
+
+        @Override
+        public int getHeight() {
+            return mSize;
+        }
+
+        @Override
+        public int getPixel(int x, int y) {
+            x += (mCameraSize.width - mSize) / 2;
+            y += (mCameraSize.height - mSize) / 2;
+            byte b = mData[y * mCameraSize.width + x];
+            int val = (b < 0) ? 256 + b : b;
+            return 0x010101 * val;
+        }
+    }
 
     /*-----------------------------------------------------------------------*/
 
@@ -47,6 +145,30 @@ public class ScanQRCameraActivity extends ScanQRActivity implements SurfaceHolde
     }
 
     @Override
+    protected void onResume() {
+        if (mCamera != null) {
+            mCamera.startPreview();
+            if (mTask == null) {
+                mTask = new ScanQRTask(mQrFrame.getWidth());
+                new Thread(mTask).start();
+            }
+        }
+        super.onResume();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if (mTask != null) {
+            mTask.finish();
+            mTask = null;
+        }
+        if (mCamera != null) {
+            mCamera.stopPreview();
+        }
+    }
+
+    @Override
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
         setCameraOrientation();
@@ -57,9 +179,9 @@ public class ScanQRCameraActivity extends ScanQRActivity implements SurfaceHolde
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
         try {
+            int size = mQrFrame.getWidth();
             mCamera = Camera.open();
             mCamera.setPreviewDisplay(holder);
-            int size = mQrFrame.getWidth();
             Camera.Parameters cp = mCamera.getParameters();
             List<Camera.Size> sizeList = cp.getSupportedPreviewSizes();
             mCameraSize = sizeList.get(0);
@@ -83,8 +205,13 @@ public class ScanQRCameraActivity extends ScanQRActivity implements SurfaceHolde
 
     @Override
     public void surfaceDestroyed(SurfaceHolder holder) {
+        if (mTask != null) {
+            mTask.finish();
+            mTask = null;
+        }
         mCamera.stopPreview();
         mCamera.release();
+        mCamera = null;
     }
 
     /*-----------------------------------------------------------------------*/
@@ -114,6 +241,10 @@ public class ScanQRCameraActivity extends ScanQRActivity implements SurfaceHolde
             mCamera.stopPreview();
             mCamera.setDisplayOrientation(degrees);
             mCamera.startPreview();
+            if (mTask == null) {
+                mTask = new ScanQRTask(mQrFrame.getWidth());
+                new Thread(mTask).start();
+            }
         }
     }
 
