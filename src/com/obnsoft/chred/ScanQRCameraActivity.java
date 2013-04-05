@@ -23,13 +23,14 @@ import jp.sourceforge.qrcode.data.QRCodeImage;
 
 import android.content.res.Configuration;
 import android.hardware.Camera;
-import android.hardware.Camera.PreviewCallback;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+import android.view.View;
+import android.view.View.OnClickListener;
 import android.widget.RelativeLayout;
 
 public class ScanQRCameraActivity extends ScanQRActivity implements SurfaceHolder.Callback {
@@ -38,6 +39,7 @@ public class ScanQRCameraActivity extends ScanQRActivity implements SurfaceHolde
     private static final int MSG_SCAN_FAIL = 2;
     private static final int MSEC_TIMEOUT_EXECSCAN = 500;
 
+    private boolean mFocusing;
     private Camera mCamera;
     private Camera.Size mCameraSize;
     private SurfaceView mQrView;
@@ -66,9 +68,16 @@ public class ScanQRCameraActivity extends ScanQRActivity implements SurfaceHolde
         }
     };
 
+    private Camera.AutoFocusCallback mAutoFocusListener = new Camera.AutoFocusCallback() {
+        @Override
+        public void onAutoFocus(boolean success, Camera camera) {
+            camera.autoFocus(null);
+            mFocusing = false;
+        }
+    };
     /*-----------------------------------------------------------------------*/
 
-    class ScanQRTask implements Runnable, PreviewCallback, QRCodeImage {
+    class ScanQRTask implements Runnable, Camera.PreviewCallback, QRCodeImage {
 
         private boolean mLoop;
         private int mSize;
@@ -139,6 +148,15 @@ public class ScanQRCameraActivity extends ScanQRActivity implements SurfaceHolde
         super.onCreate(savedInstanceState);
 
         mQrView = (SurfaceView) findViewById(R.id.view_qrimage);
+        mQrView.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (mCamera != null && !mFocusing) {
+                    mFocusing = true;
+                    mCamera.autoFocus(mAutoFocusListener);
+                }
+            }
+        });
         SurfaceHolder holder = mQrView.getHolder();
         holder.addCallback(this);
         holder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
@@ -192,6 +210,7 @@ public class ScanQRCameraActivity extends ScanQRActivity implements SurfaceHolde
                 }
             }
             cp.setPreviewSize(mCameraSize.width, mCameraSize.height);
+            cp.setFocusMode(Camera.Parameters.FOCUS_MODE_MACRO);
             mCamera.setParameters(cp);
         } catch(IOException e) {
             e.printStackTrace();
