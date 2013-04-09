@@ -57,7 +57,9 @@ public class MainActivity extends TabActivity {
     private static final int REQUEST_ID_IMPORT_FILE = 1;
     private static final int REQUEST_ID_IMPORT_GALLERY = 2;
     private static final int REQUEST_ID_IMPORT_CAMERA = 3;
-    private static final int REQUEST_ID_EXPORT = 10;
+    private static final int REQUEST_ID_EXPORT_PTC = 10;
+    //private static final int REQUEST_ID_EXPORT_QR = 11;
+    private static final int REQUEST_ID_EXPORT_TEXT = 12;
 
     private static final char FULLWIDTH_EXCLAMATION_MARK = 0xFF01;
 
@@ -163,7 +165,7 @@ public class MainActivity extends TabActivity {
                 Utils.showToast(this, R.string.msg_error);
             }
             break;
-        case REQUEST_ID_EXPORT:
+        case REQUEST_ID_EXPORT_PTC:
             if (resultCode == RESULT_OK) {
                 confirmExportToFile(mWorkPTC,
                         data.getStringExtra(MyFilePickerActivity.INTENT_EXTRA_SELECTPATH));
@@ -172,6 +174,14 @@ public class MainActivity extends TabActivity {
                 mWorkPTC = null;
             }
             break;
+        case REQUEST_ID_EXPORT_TEXT:
+            if (resultCode == RESULT_OK) {
+                executeExportToText(mWorkPTC,
+                        data.getStringExtra(MyFilePickerActivity.INTENT_EXTRA_SELECTPATH));
+            } else if (mWorkPTC != null) {
+                mWorkPTC.clear();
+                mWorkPTC = null;
+            }
         }
     }
 
@@ -246,6 +256,17 @@ public class MainActivity extends TabActivity {
     private void executeImportFromPTCFile(final PTCFile ptcfile, final boolean fromQR) {
         final int type = ptcfile.getType();
         final String pname = ptcfile.getNameWithType();
+        int exBtnId = (fromQR) ? R.string.toptc : R.string.toqr;
+        OnClickListener exLsn = new OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                if (fromQR) {
+                    requestFileToExport(ptcfile);
+                } else {
+                    executeExportToQRCodes(ptcfile);
+                }
+            }
+        };
         OnClickListener imLsn = new OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
@@ -259,25 +280,32 @@ public class MainActivity extends TabActivity {
                 Utils.showToast(MainActivity.this, msg);
             }
         };
-        OnClickListener exLsn = new OnClickListener() {
+        OnClickListener trLsn = new OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                if (fromQR) {
-                    requestFileToExport(ptcfile);
-                } else {
-                    executeExportToQRCodes(ptcfile);
-                }
+                String path = MyFilePickerActivity.DEFAULT_DIR.concat("text/");
+                Intent intent = new Intent(MainActivity.this, MyFilePickerActivity.class);
+                intent.putExtra(MyFilePickerActivity.INTENT_EXTRA_TITLEID, R.string.title_export);
+                intent.putExtra(MyFilePickerActivity.INTENT_EXTRA_DIRECTORY, path);
+                intent.putExtra(MyFilePickerActivity.INTENT_EXTRA_EXTENSION, ".txt");
+                intent.putExtra(MyFilePickerActivity.INTENT_EXTRA_WRITEMODE, true);
+                startActivityForResult(intent, REQUEST_ID_EXPORT_TEXT);
+                mWorkPTC = ptcfile;
             }
         };
-        int exBtnId = (fromQR) ? R.string.toptc : R.string.toqr;
         if (type == PTCFile.PTC_TYPE_CHR || type == PTCFile.PTC_TYPE_COL) {
             String msg = String.format(getString(R.string.msg_import), pname);
             Utils.show3ButtonsDialog(this, R.drawable.ic_import, R.string.menu_import, msg,
                     android.R.string.no, exBtnId, android.R.string.yes, exLsn, imLsn);
         } else {
             String msg = String.format(getString(R.string.msg_notsupported), pname);
-            Utils.show2ButtonsDialog(this, R.drawable.ic_import, R.string.menu_import, msg,
-                    R.string.dismiss, exBtnId, exLsn);
+            if (type == PTCFile.PTC_TYPE_PRG) {
+                Utils.show3ButtonsDialog(this, R.drawable.ic_import, R.string.menu_import, msg,
+                        R.string.dismiss, exBtnId, R.string.totext, exLsn, trLsn);
+            } else {
+                Utils.show2ButtonsDialog(this, R.drawable.ic_import, R.string.menu_import, msg,
+                        R.string.dismiss, exBtnId, exLsn);
+            }
         }
     }
 
@@ -290,7 +318,7 @@ public class MainActivity extends TabActivity {
         intent.putExtra(MyFilePickerActivity.INTENT_EXTRA_DIRECTORY, path);
         intent.putExtra(MyFilePickerActivity.INTENT_EXTRA_EXTENSION, MyApplication.FNAMEEXT_PTC);
         intent.putExtra(MyFilePickerActivity.INTENT_EXTRA_WRITEMODE, true);
-        startActivityForResult(intent, REQUEST_ID_EXPORT);
+        startActivityForResult(intent, REQUEST_ID_EXPORT_PTC);
         mWorkPTC = ptcfile;
     }
 
@@ -421,6 +449,34 @@ public class MainActivity extends TabActivity {
                 e.printStackTrace();
             } catch (IOException e) {
                 e.printStackTrace();
+            }
+        }
+        if (!ret) {
+            Utils.showToast(this, R.string.msg_error);
+        }
+    }
+
+    private void executeExportToText(PTCFile ptcfile, String path) {
+        boolean ret = false;
+        if (ptcfile != null && ptcfile.getType() == PTCFile.PTC_TYPE_PRG) {
+            /*try {
+                OutputStream out = new FileOutputStream(path);
+                ret = ptcfile.save(out);
+                out.close();
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            if (ret) {
+                String msg = String.format(
+                        getString(R.string.msg_savetext), ptcfile.getNameWithType());
+                Utils.showShareDialog(MainActivity.this, R.drawable.ic_export,
+                        R.string.menu_export, msg, path);
+            }*/
+            if (mWorkPTC == ptcfile) {
+                mWorkPTC.clear();
+                mWorkPTC = null;
             }
         }
         if (!ret) {

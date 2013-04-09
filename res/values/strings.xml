@@ -10,6 +10,7 @@
     <string name="share">Share</string>
     <string name="toptc">To PTC</string>
     <string name="toqr">To QR</string>
+    <string name="totext">To text</string>
     <string name="dismiss">Dismiss</string>
     <string name="ename_default" translatable="false">ANDROID</string>
     <string name="qr_msg">Move #%d QR code into red frame</string>
@@ -55,6 +56,7 @@
     <string name="msg_loadptc">\"%s\" is imported successfully.</string>
     <string name="msg_saveptc">\"%s\" is exported successfully.</string>
     <string name="msg_saveqr">QR code for \"%s\" is generated successfully.</string>
+    <string name="msg_savetext">Text file for \"%s\" is generated successfully.</string>
     <string name="msg_error">An error occurred during process.</string>
     <string name="msg_invalid">You entered an invalid parameter.</string>
     <string name="msg_notsupported">Sorry, \"%s\" isn\'t supported.</string>

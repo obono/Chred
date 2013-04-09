@@ -8,6 +8,7 @@
     <string name="share">共有</string>
     <string name="toptc">PTC保存</string>
     <string name="toqr">QR変換</string>
+    <string name="totext">text化</string>
     <string name="dismiss">了解</string>
     <string name="qr_msg">%d番目のQRコードを枠内へ</string>
     <string name="qr_other">他の画像</string>
@@ -52,6 +53,7 @@
     <string name="msg_loadptc">\"%s\"を読み込みました。</string>
     <string name="msg_saveptc">\"%s\"を保存しました。</string>
     <string name="msg_saveqr">\"%s\"のQRコードを生成しました。</string>
+    <string name="msg_savetext">\"%s\"のtextファイルを生成しました。</string>
     <string name="msg_error">処理中にエラーが発生しました。</string>
     <string name="msg_invalid">無効な値が入力されました。</string>
     <string name="msg_notsupported">\"%s\"はサポートしていません。</string>
