@@ -53,7 +53,12 @@ public class ScanQRCameraActivity extends ScanQRActivity implements SurfaceHolde
                 if (mQRMan.inProgress()) {
                     if (ret) {
                         setInformation();
-                        setFrameResultColor(true);
+                    }
+                    if (msg.obj != null) {
+                        Utils.showToast(ScanQRCameraActivity.this, (String) msg.obj);
+                    }
+                    if (ret || msg.obj != null) {
+                        setFrameResultColor(ret);
                     } else {
                         setFrameDefaultColor();
                     }
@@ -107,7 +112,9 @@ public class ScanQRCameraActivity extends ScanQRActivity implements SurfaceHolde
                 }
                 if (mData != null) {
                     boolean ret = mQRMan.executeScan(this);
-                    mMsgHandler.sendEmptyMessage(ret ? MSG_SCAN_SUCCESS : MSG_SCAN_FAIL);
+                    Message msg = Message.obtain(null,
+                            ret ? MSG_SCAN_SUCCESS : MSG_SCAN_FAIL, mQRMan.getMessage());
+                    mMsgHandler.sendMessage(msg);
                     mData = null;
                 }
             }

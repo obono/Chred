@@ -52,6 +52,10 @@ public class ScanQRGalleryActivity extends ScanQRActivity {
         public void dispatchMessage(Message msg) {
             if (msg.what == MSG_EXECSCAN) {
                 boolean ret = mQRMan.executeScan(mQrImage);
+                String toastMsg = mQRMan.getMessage();
+                if (toastMsg != null) {
+                    Utils.showToast(ScanQRGalleryActivity.this, toastMsg);
+                }
                 if (mQRMan.inProgress()) {
                     if (ret) {
                         setInformation();

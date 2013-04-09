@@ -33,6 +33,7 @@ public class ScanQRManager {
     private int mCurLen;
     private int mTotalCnt;
     private int mTotalLen;
+    private String mMessage;
     private String mEname;
     private byte[] mMd5All = new byte[16];
     private byte[] mCmprsData;
@@ -60,6 +61,7 @@ public class ScanQRManager {
         mCurLen = 0;
         mTotalCnt = 0;
         mTotalLen = 0;
+        mMessage = null;
         mEname = null;
         mCmprsData = null;
     }
@@ -74,6 +76,10 @@ public class ScanQRManager {
 
     public int getTotalQRNumber() {
         return mTotalCnt;
+    }
+
+    public String getMessage() {
+        return mMessage;
     }
 
     public String getNameWithType() {
@@ -91,11 +97,12 @@ public class ScanQRManager {
             qrData = mDecoder.decode(image);
         } catch (DecodingFailedException e) {
             myLog("Not QR code.");
+            mMessage = null;
             return false;
         }
         if (qrData.length <= 36 || qrData[0] != 'P' || qrData[1] != 'T') {
-            Utils.showToast(mContext, R.string.qr_err_invalid);
             myLog("Strange data.");
+            mMessage = mContext.getString(R.string.qr_err_invalid);
             return false; 
         }
         byte[] md5each = new byte[16];
@@ -105,28 +112,27 @@ public class ScanQRManager {
         System.arraycopy(qrData, 20, md5, 0, 16);
         System.arraycopy(qrData, 36, partData, 0, partData.length);
         if (!Arrays.equals(md5each, Utils.getMD5(partData))) {
-            Utils.showToast(mContext, R.string.qr_err_corrupt);
             myLog("Hash of this data is wrong.");
+            mMessage = mContext.getString(R.string.qr_err_corrupt);
             return false;
         }
 
         /*  First QR code  */
         if (mTotalCnt == 0) {
             if (partData.length <= PTCFile.HEADLEN_CMPRSDATA) {
-                Utils.showToast(mContext, R.string.qr_err_corrupt);
                 myLog("Too short as 1st QR code.");
+                mMessage = mContext.getString(R.string.qr_err_corrupt);
                 return false;
             }
             if (qrData[2] != 1) {
-                Utils.showToast(mContext, String.format(
-                        mContext.getString(R.string.qr_err_order), qrData[2]));
                 myLog("Wrong number for current data.");
+                mMessage = String.format(mContext.getString(R.string.qr_err_order), qrData[2]);
                 return false;
             }
             mTotalLen = Utils.extractValue(partData, 12, 4) + PTCFile.HEADLEN_CMPRSDATA;
             if (mTotalLen < 0 || mTotalLen > PTCFile.WORKLEN_CMPRSDATA) {
-                Utils.showToast(mContext, R.string.qr_err_corrupt);
                 myLog("Strange total length.");
+                mMessage = mContext.getString(R.string.qr_err_corrupt);
                 return false;
             }
             mCurCnt = 0;
@@ -139,18 +145,18 @@ public class ScanQRManager {
 
         /*  Append data after check  */
         if (qrData[3] != mTotalCnt || !Arrays.equals(md5, mMd5All)) {
-            Utils.showToast(mContext, R.string.qr_err_different);
             myLog("Unsuitable for current data.");
+            mMessage = mContext.getString(R.string.qr_err_different);
             return false;
         }
         if (qrData[2] != mCurCnt + 1) {
-            Utils.showToast(mContext, String.format(
-                    mContext.getString(R.string.qr_err_order), qrData[2]));
             myLog("Wrong number for current data.");
+            mMessage = String.format(mContext.getString(R.string.qr_err_order), qrData[2]);
             return false;
         }
         if (mCurLen + partData.length > mTotalLen) {
             myLog("Data is too much.");
+            mMessage = null;
             mInProgress = false;
             return false;
         }
@@ -162,19 +168,23 @@ public class ScanQRManager {
         if (mCurCnt == mTotalCnt) {
             if (mCurLen < mTotalLen) {
                 myLog("Data isn't enough.");
+                mMessage = null;
                 mInProgress = false;
                 return false;
             }
             if (!Arrays.equals(md5, Utils.getMD5(mCmprsData))) {
                 myLog("Hash of whole data is wrong.");
+                mMessage = null;
                 mInProgress = false;
                 return false;
             }
             myLog("Completed!!");
+            mMessage = null;
             mInProgress = false;
             return true;
         }
         myLog("Success!");
+        mMessage = null;
         return true;
     }
 
