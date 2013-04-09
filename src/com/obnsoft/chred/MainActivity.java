@@ -459,21 +459,24 @@ public class MainActivity extends TabActivity {
     private void executeExportToText(PTCFile ptcfile, String path) {
         boolean ret = false;
         if (ptcfile != null && ptcfile.getType() == PTCFile.PTC_TYPE_PRG) {
-            /*try {
-                OutputStream out = new FileOutputStream(path);
-                ret = ptcfile.save(out);
-                out.close();
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
+            String str = PrgData.convertToString(ptcfile);
+            if (str != null) {
+                try {
+                    OutputStream out = new FileOutputStream(path);
+                    //out.write(str);
+                    out.close();
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                if (ret) {
+                    String msg = String.format(
+                            getString(R.string.msg_savetext), ptcfile.getNameWithType());
+                    Utils.showShareDialog(MainActivity.this, R.drawable.ic_export,
+                            R.string.menu_export, msg, path);
+                }
             }
-            if (ret) {
-                String msg = String.format(
-                        getString(R.string.msg_savetext), ptcfile.getNameWithType());
-                Utils.showShareDialog(MainActivity.this, R.drawable.ic_export,
-                        R.string.menu_export, msg, path);
-            }*/
             if (mWorkPTC == ptcfile) {
                 mWorkPTC.clear();
                 mWorkPTC = null;
