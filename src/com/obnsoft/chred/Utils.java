@@ -125,7 +125,8 @@ public class Utils {
     }
 
     public static void showShareDialog(
-            final Context context, int iconId, int titleId, String msg, final String path) {
+            final Context context, int iconId, int titleId, String msg,
+            final String path, final String text) {
         final String mimetype = MimeTypeMap.getSingleton()
                 .getMimeTypeFromExtension(path.substring(path.lastIndexOf('.') + 1));
         boolean showNeutral = (mimetype != null);
@@ -138,7 +139,13 @@ public class Utils {
                 if (which == DialogInterface.BUTTON_POSITIVE) {
                     intent.setAction(Intent.ACTION_SEND);
                     intent.setType((mimetype == null) ? "application/octet-stream" : mimetype);
-                    intent.putExtra(Intent.EXTRA_STREAM, uri);
+                    if (text != null) {
+                        intent.putExtra(Intent.EXTRA_SUBJECT,
+                                text.substring(0, text.indexOf(Utils.LF)));
+                        intent.putExtra(Intent.EXTRA_TEXT, text);
+                    } else {
+                        intent.putExtra(Intent.EXTRA_STREAM, uri);
+                    }
                 } else {
                     intent.setAction(Intent.ACTION_VIEW);
                     intent.setDataAndType(uri, mimetype);
