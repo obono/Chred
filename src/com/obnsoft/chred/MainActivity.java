@@ -118,10 +118,10 @@ public class MainActivity extends TabActivity {
             startActivityForResult(
                     new Intent(this, ScanQRGalleryActivity.class), REQUEST_ID_IMPORT_GALLERY);
             return true;
-        case R.id.menu_import_camera:
+        /*case R.id.menu_import_camera:
             startActivityForResult(
                     new Intent(this, ScanQRCameraActivity.class), REQUEST_ID_IMPORT_CAMERA);
-            return true;
+            return true;*/
         case R.id.menu_import_preset:
             selectPresetToImport();
             return true;
