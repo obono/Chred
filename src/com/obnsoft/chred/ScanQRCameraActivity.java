@@ -141,8 +141,7 @@ public class ScanQRCameraActivity extends ScanQRActivity implements SurfaceHolde
         public int getPixel(int x, int y) {
             x += (mCameraSize.width - mSize) / 2;
             y += (mCameraSize.height - mSize) / 2;
-            byte b = mData[y * mCameraSize.width + x];
-            int val = (b < 0) ? 256 + b : b;
+            int val = mData[y * mCameraSize.width + x] & 0xFF;
             return 0x010101 * val;
         }
     }

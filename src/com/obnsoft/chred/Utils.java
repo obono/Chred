@@ -40,6 +40,7 @@ import android.widget.Toast;
 public class Utils {
 
     public static final char IDEOGRAPHICS_SPACE = 0x3000;
+    public static final String LF = "\r\n";
 
     public static String getVersion(Context context) {
         try {

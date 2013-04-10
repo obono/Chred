@@ -36,6 +36,7 @@ public class MyFilePickerActivity extends FilePickerActivity {
     public static final String DEFAULT_DIR =
         Environment.getExternalStorageDirectory().getPath().concat("/petitcom/");
     public static final String DEFAULT_DIR_QR = DEFAULT_DIR.concat("QR/");
+    public static final String DEFAULT_DIR_TEXT = DEFAULT_DIR.concat("text/");
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
