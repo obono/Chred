@@ -16,10 +16,13 @@
 
 package com.obnsoft.chred;
 
+import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Calendar;
 
 import android.app.Application;
 import android.content.SharedPreferences;
@@ -46,6 +49,7 @@ public class MyApplication extends Application {
     public int mEnameModePtc;
     public int mEnameModeQr;
     public boolean mTightQr;
+    public int mKeepDays;
 
     public ChrData mChrData;
     public ColData mColData;
@@ -63,6 +67,7 @@ public class MyApplication extends Application {
     private static final String PREF_KEY_ENAME_PTC = "ename_ptc";
     private static final String PREF_KEY_ENAME_QR = "ename_qr";
     private static final String PREF_KEY_TIGHT = "tight";
+    private static final String PREF_KEY_KEEPDAYS = "keep_days";
     private static final String ENAME_MODE_STRS[] = { "every", "guess", "const" };
 
     /*-----------------------------------------------------------------------*/
@@ -151,11 +156,35 @@ public class MyApplication extends Application {
         }
     }
 
+    public void removeOldFiles(String path, final String suffix) {
+        if (path == null || suffix == null || mKeepDays == 0) {
+            return;
+        }
+        File dir = new File(path);
+        File[] files = dir.listFiles(new FilenameFilter() {
+            @Override
+            public boolean accept(File dir, String filename) {
+                return filename.endsWith(suffix);
+            }
+        });
+        Calendar cal = Calendar.getInstance();
+        cal.add(Calendar.DAY_OF_MONTH, -mKeepDays);
+        long limitTime = cal.getTimeInMillis();
+        if (files != null && files.length > 0) {
+            for (File file : files) {
+                if (file.lastModified() <= limitTime) {
+                    file.delete();
+                }
+            }
+        }
+    }
+
     public void getPrefsInSetting(SharedPreferences prefs) {
         mEname = prefs.getString(PREF_KEY_ENAME, ENAME_DEFAULT);
         mEnameModePtc = getEnameModeVal(prefs.getString(PREF_KEY_ENAME_PTC, "const"));
         mEnameModeQr = getEnameModeVal(prefs.getString(PREF_KEY_ENAME_QR, "const"));
         mTightQr = prefs.getBoolean(PREF_KEY_TIGHT, false);
+        mKeepDays = Integer.parseInt(prefs.getString(PREF_KEY_KEEPDAYS, "0"));
     }
 
     private int getEnameModeVal(String modeStr) {

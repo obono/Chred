@@ -34,7 +34,6 @@ import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.media.MediaScannerConnection;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -96,6 +95,8 @@ public class MainActivity extends TabActivity {
         super.onPause();
         mApp.mCurTab = getTabHost().getCurrentTabTag();
         mApp.saveData();
+        mApp.removeOldFiles(MyFilePickerActivity.DEFAULT_DIR_QR, ".png");
+        mApp.removeOldFiles(MyFilePickerActivity.DEFAULT_DIR_TEXT, ".txt");
     }
 
     /*-----------------------------------------------------------------------*/
@@ -415,15 +416,15 @@ public class MainActivity extends TabActivity {
                 dir.mkdirs();
             }
             SimpleDateFormat fmt =
-                    new SimpleDateFormat("'qr_'yyMMdd'-'HHmmss'.png'", Locale.US);
-            String path = MyFilePickerActivity.DEFAULT_DIR_QR.concat(fmt.format(new Date()));
+                    new SimpleDateFormat("'_qr_'yyMMdd'-'HHmmss'.png'", Locale.US);
+            String path = MyFilePickerActivity.DEFAULT_DIR_QR
+                    .concat(ptcfile.getName().toLowerCase(Locale.US))
+                    .concat(fmt.format(new Date()));
             try {
                 OutputStream out = new FileOutputStream(path);
                 bmp.compress(Bitmap.CompressFormat.PNG, 0, out);
                 out.close();
                 bmp.recycle();
-                MediaScannerConnection.scanFile(this,
-                        new String[] {path}, new String[] {"image/png"}, null);
                 String msg = String.format(
                         getString(R.string.msg_saveqr), ptcfile.getNameWithType());
                 Utils.showShareDialog(MainActivity.this, R.drawable.ic_export,
@@ -450,9 +451,10 @@ public class MainActivity extends TabActivity {
                     dir.mkdirs();
                 }
                 SimpleDateFormat fmt =
-                        new SimpleDateFormat("'_'yyMMdd'-'HHmmss'.txt'", Locale.US);
+                        new SimpleDateFormat("'_code_'yyMMdd'-'HHmmss'.txt'", Locale.US);
                 String path = MyFilePickerActivity.DEFAULT_DIR_TEXT
-                        .concat(ptcfile.getName()).concat(fmt.format(new Date()));
+                        .concat(ptcfile.getName().toLowerCase(Locale.US))
+                        .concat(fmt.format(new Date()));
                 StringBuffer buf = new StringBuffer();
                 buf.append(ptcfile.getNameWithType())
                         .append(Utils.LF)

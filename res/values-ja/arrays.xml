@@ -9,4 +9,10 @@
         <item>毎回入力する</item>
         <item>プリセット名から</item>
     </string-array>
+    <string-array name="keepdays_entries">
+        <item>1日間</item>
+        <item>3日間</item>
+        <item>1週間</item>
+        <item>消さない</item>
+    </string-array>
 </resources>

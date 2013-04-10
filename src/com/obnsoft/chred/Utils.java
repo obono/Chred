@@ -30,6 +30,7 @@ import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
+import android.media.MediaScannerConnection;
 import android.net.Uri;
 import android.view.View;
 import android.view.WindowManager;
@@ -129,7 +130,12 @@ public class Utils {
             final String path, final String text) {
         final String mimetype = MimeTypeMap.getSingleton()
                 .getMimeTypeFromExtension(path.substring(path.lastIndexOf('.') + 1));
-        boolean showNeutral = (mimetype != null);
+        boolean showNeutral = false;
+        if (mimetype != null) {
+            MediaScannerConnection.scanFile(context,
+                    new String[] {path}, new String[] { mimetype }, null);
+            showNeutral = true;
+        }
         OnClickListener l = new OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {

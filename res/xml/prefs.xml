@@ -34,6 +34,13 @@
             android:title="@string/prefs_tight"
             android:summary="@string/prefs_tight_sub"
             />
+        <ListPreference
+            android:key="keep_days"
+            android:defaultValue="0"
+            android:title="@string/prefs_keepdays"
+            android:entries="@array/keepdays_entries"
+            android:entryValues="@array/keepdays_entryvalues"
+            />
         <com.obnsoft.chred.VersionPreference
             android:key="about"
             android:persistent="false"

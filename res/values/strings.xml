@@ -45,6 +45,7 @@
     <string name="prefs_other">Other</string>
     <string name="prefs_tight">Reduce number of QR code</string>
     <string name="prefs_tight_sub">But error-correction is weaken</string>
+    <string name="prefs_keepdays">When temp files are removed</string>
     <string name="prefs_version">Version info</string>
     <string name="msg_newfilename">Enter the file name</string>
     <string name="msg_ename">Enter the name to embed\n(capital letters only)</string>
