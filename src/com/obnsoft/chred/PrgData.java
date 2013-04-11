@@ -57,7 +57,7 @@ public class PrgData {
         0x0436, 0x0437, 0x0438, 0x0439, 0x043A, 0x043B, 0x043C, 0x2542,
     };
 
-    public static String convertToString(PTCFile ptcfile) {
+    public static String convertToString(PTCFile ptcfile, boolean isFullCharset) {
         /*  Check header and so on  */
         byte[] data = ptcfile.getData();
         if (data.length <= 24) {
@@ -76,12 +76,27 @@ public class PrgData {
         /*  Convert  */
         StringBuffer buf = new StringBuffer(dataLen - 24);
         int val = 0;
-        for (int i = 24; i < dataLen; i++) {
-            val = data[i] & 0xFF;
-            if (val == 0x0D) {
-                buf.append(Utils.LF);
-            } else {
-                buf.append(CHAR_TABLE[val]);
+        if (isFullCharset) {
+            for (int i = 24; i < dataLen; i++) {
+                val = data[i] & 0xFF;
+                if (val == 0x0D) {
+                    buf.append(Utils.LF);
+                } else {
+                    buf.append(CHAR_TABLE[val]);
+                }
+            }
+        } else {
+            for (int i = 24; i < dataLen; i++) {
+                val = data[i] & 0xFF;
+                if (val == 0x0D) {
+                    buf.append(Utils.LF);
+                } else if (val >= 0x20 && val <= 0x7E) {
+                    buf.append((char) val);
+                } else if (val >= 0xA1 && val <= 0xDF) {
+                    buf.append((char) (val + 0xFEC0));
+                } else {
+                    buf.append('?');
+                }
             }
         }
         if (val != 0x0D) {

@@ -25,9 +25,11 @@ import java.io.OutputStream;
 import java.util.Calendar;
 
 import android.app.Application;
+import android.content.ContentResolver;
 import android.content.SharedPreferences;
 import android.content.res.AssetManager;
 import android.preference.PreferenceManager;
+import android.provider.MediaStore;
 import android.util.Log;
 
 public class MyApplication extends Application {
@@ -49,6 +51,7 @@ public class MyApplication extends Application {
     public int mEnameModePtc;
     public int mEnameModeQr;
     public boolean mTightQr;
+    public boolean mFullCharset;
     public int mKeepDays;
 
     public ChrData mChrData;
@@ -67,8 +70,10 @@ public class MyApplication extends Application {
     private static final String PREF_KEY_ENAME_PTC = "ename_ptc";
     private static final String PREF_KEY_ENAME_QR = "ename_qr";
     private static final String PREF_KEY_TIGHT = "tight";
+    private static final String PREF_KEY_CHARSET = "text_charset";
     private static final String PREF_KEY_KEEPDAYS = "keep_days";
     private static final String ENAME_MODE_STRS[] = { "every", "guess", "const" };
+    private static final String CHARSET_FULL = "full";
 
     /*-----------------------------------------------------------------------*/
 
@@ -171,9 +176,14 @@ public class MyApplication extends Application {
         cal.add(Calendar.DAY_OF_MONTH, -mKeepDays);
         long limitTime = cal.getTimeInMillis();
         if (files != null && files.length > 0) {
+            ContentResolver cr = getContentResolver();
+            final String where = MediaStore.Images.Media.DATA.concat("=?");
+            String[] arg = new String[1];
             for (File file : files) {
                 if (file.lastModified() <= limitTime) {
                     file.delete();
+                    arg[0] = file.getPath();
+                    cr.delete(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, where, arg);
                 }
             }
         }
@@ -184,6 +194,7 @@ public class MyApplication extends Application {
         mEnameModePtc = getEnameModeVal(prefs.getString(PREF_KEY_ENAME_PTC, "const"));
         mEnameModeQr = getEnameModeVal(prefs.getString(PREF_KEY_ENAME_QR, "const"));
         mTightQr = prefs.getBoolean(PREF_KEY_TIGHT, false);
+        mFullCharset = (prefs.getString(PREF_KEY_CHARSET, CHARSET_FULL).equals(CHARSET_FULL));
         mKeepDays = Integer.parseInt(prefs.getString(PREF_KEY_KEEPDAYS, "0"));
     }
 

@@ -35,6 +35,15 @@
         <item>const</item>
     </string-array>
 
+    <string-array name="charset_entries">
+        <item>Halfwidth letters</item>
+        <item>Fullwidth letters</item>
+    </string-array>
+    <string-array name="charset_entryvalues" translatable="false">
+        <item>half</item>
+        <item>full</item>
+    </string-array>
+
     <string-array name="keepdays_entries">
         <item>In a day</item>
         <item>In 3 days</item>

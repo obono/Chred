@@ -8,7 +8,7 @@
     <string name="share">共有</string>
     <string name="toptc">PTC保存</string>
     <string name="toqr">QR変換</string>
-    <string name="totext">text化</string>
+    <string name="totext">text出力</string>
     <string name="dismiss">了解</string>
     <string name="qr_msg">%d番目のQRコードを枠内へ</string>
     <string name="qr_other">他の画像</string>
@@ -19,6 +19,7 @@
     <string name="title_import">PTCファイルを開く</string>
     <string name="title_export">PTCファイルを保存</string>
     <string name="title_scanqr">QRコードの読み取り</string>
+    <string name="title_prefs">設定 - CHRED on Android</string>
     <string name="menu_import">インポート</string>
     <string name="menu_import_file">PTCファイルを開く</string>
     <string name="menu_import_gallery">QRコード(ギャラリーから)</string>
@@ -39,10 +40,12 @@
     <string name="prefs_ename_ptc">PTCファイル保存時</string>
     <string name="prefs_ename_qr">QRコード作成時</string>
     <string name="prefs_ename_preset">プリセット名</string>
-    <string name="prefs_other">その他</string>
+    <string name="prefs_temp">一時ファイル(QRコード,textファイル)の扱い</string>
     <string name="prefs_tight">QRコードの枚数を減らす</string>
     <string name="prefs_tight_sub">その分、エラー訂正が弱くなります</string>
-    <string name="prefs_keepdays">一時ファイル(QR,text)保存期間</string>
+    <string name="prefs_charset">PRGデータtext化の文字セット</string>
+    <string name="prefs_keepdays">一時ファイル保存期間</string>
+    <string name="prefs_other">その他</string>
     <string name="prefs_version">バージョン情報</string>
     <string name="msg_newfilename">ファイル名を入力</string>
     <string name="msg_ename">埋め込むファイル名を入力\n(大文字英数字のみ)</string>

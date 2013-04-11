@@ -22,6 +22,7 @@
     <string name="title_import">Load PTC file</string>
     <string name="title_export">Save PTC file</string>
     <string name="title_scanqr">Scan QR code</string>
+    <string name="title_prefs">Preferences - CHRED on Android</string>
     <string name="menu_import">Import</string>
     <string name="menu_import_file">from PTC file</string>
     <string name="menu_import_gallery">QR code in gallery</string>
@@ -42,10 +43,12 @@
     <string name="prefs_ename_ptc">For PTC file</string>
     <string name="prefs_ename_qr">For QR code</string>
     <string name="prefs_ename_preset">Preset name</string>
-    <string name="prefs_other">Other</string>
+    <string name="prefs_temp">Temporal files (QR code, text file)</string>
     <string name="prefs_tight">Reduce number of QR code</string>
     <string name="prefs_tight_sub">But error-correction is weaken</string>
+    <string name="prefs_charset">Charset for converting PRG data</string>
     <string name="prefs_keepdays">When temp files are removed</string>
+    <string name="prefs_other">Other</string>
     <string name="prefs_version">Version info</string>
     <string name="msg_newfilename">Enter the file name</string>
     <string name="msg_ename">Enter the name to embed\n(capital letters only)</string>
